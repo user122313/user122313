@@ -21,6 +21,7 @@
 - **Ideen für weitere Fallen und Upgrades** stehen in `IDEEN.md` (frühestens nach dem Prüfpunkt in Woche 4).
 - **Task 11 Server-Teil fertig (20.11.2026):** Ausbau per `RequestUpgradeBase` (in `TreasureService.tryUpgrade`, weil dort die Kronkorken liegen; Abweichung vom Plan, der `BaseService` nennt). Kostet `UPGRADE_COST`, schaltet Slots 5 bis 8 frei (gesperrte Slots sind durchsichtig), Überlauf-Schätze ziehen in die neuen Plätze, der Spielstand wird sofort aktualisiert, Spieler-Attribut `BaseLevel` für die UI. Studio-Check mit 2 Spielern grün (zu wenig Kronkorken, genau die Kosten abgezogen, Stufe 2 an Bau/Spieler/Spielstand, Maximum, Überlauf, 7. Schatz passt, Weg über das echte Remote vom Client).
 - **Offen für Task 11:** die 3 Einführungshinweise und der Upgrade-Button sind UI (Codex).
+- **Dokumente (20.11.2026):** `docs/playtest-woche2.md` (Checkliste für den Playtest mit Bilal, Stellschrauben mit Fundstellen im Code) und `docs/videos/woche1-skript.md` (englisches Voice-over-Skript für Woche 1, Titel, Kapitel, Clip-Liste). Noch keine Clips aufgenommen.
 - **Als Nächstes:** Codex baut die UI (Brief ist aktuell), danach Task 12 (Handy-Test, Veröffentlichung, Zahlen).
 - **Blockiert:** Alles mit Roblox Studio braucht deinen Laptop.
 
