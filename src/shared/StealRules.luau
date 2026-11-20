@@ -6,7 +6,7 @@ export type StealRequest = {
 	now: number,
 	thiefCarrying: boolean,
 	thiefBaseFull: boolean,
-	thiefLastStealAt: number,
+	thiefLastStealAt: number?,
 	thiefSpeed: number,
 	treasureOwnerId: number?,
 	thiefId: number,
@@ -15,8 +15,24 @@ export type StealRequest = {
 
 local StealRules = {}
 
+local function isGoodNumber(v: any): boolean
+	return type(v) == "number" and v == v and v >= 0 and v ~= math.huge
+end
+
 -- Feste Prüfreihenfolge; der erste Verstoß bestimmt den Grund.
+-- Kaputte Eingaben (NaN, negativ, fehlend) werden abgelehnt, nie durchgelassen.
+-- thiefLastStealAt = nil heißt: noch nie geklaut, kein Cooldown.
 function StealRules.validate(req: StealRequest): (boolean, string?)
+	if
+		type(req.thiefId) ~= "number"
+		or not isGoodNumber(req.distance)
+		or not isGoodNumber(req.heldSeconds)
+		or not isGoodNumber(req.now)
+		or not isGoodNumber(req.thiefSpeed)
+		or (req.thiefLastStealAt ~= nil and (type(req.thiefLastStealAt) ~= "number" or req.thiefLastStealAt ~= req.thiefLastStealAt))
+	then
+		return false, "bad_input"
+	end
 	if req.treasureOwnerId == nil then
 		return false, "no_owner"
 	end
@@ -32,7 +48,7 @@ function StealRules.validate(req: StealRequest): (boolean, string?)
 	if req.thiefBaseFull then
 		return false, "base_full"
 	end
-	if req.now - req.thiefLastStealAt < Config.STEAL_COOLDOWN then
+	if req.thiefLastStealAt ~= nil and req.now - req.thiefLastStealAt < Config.STEAL_COOLDOWN then
 		return false, "cooldown"
 	end
 	if req.distance > Config.STEAL_REACH then

@@ -30,6 +30,9 @@ end
 
 -- r liegt in [0, 1). Schwellen kommen aus Config.DUMP_WEIGHTS.
 function Economy.rollRarity(r: number): Rarity
+	if r ~= r then
+		return "common"
+	end
 	local w = Config.DUMP_WEIGHTS
 	local sum = w.common + w.rare + w.legendary
 	local x = r * sum

@@ -118,3 +118,44 @@ t.test("leave without carrying -> none", function()
 	t.eq(StealRules.resolveLeave("thief", false), "none")
 	t.eq(StealRules.resolveLeave("owner", false), "none")
 end)
+
+-- Review-Funde: kaputte Zahlen müssen abgelehnt werden, nie durchgehen oder abstürzen.
+for _, field in { "distance", "heldSeconds", "now", "thiefSpeed" } do
+	t.test(`bad_input: NaN in {field} is rejected`, function()
+		local ok, reason = check({ [field] = 0 / 0 })
+		t.eq(ok, false)
+		t.eq(reason, "bad_input")
+	end)
+	t.test(`bad_input: negative {field} is rejected`, function()
+		local ok, reason = check({ [field] = -1 })
+		t.eq(ok, false)
+		t.eq(reason, "bad_input")
+	end)
+	t.test(`bad_input: missing {field} is rejected without crashing`, function()
+		local req = valid()
+		req[field] = nil
+		local ok, reason = load("StealRules").validate(req)
+		t.eq(ok, false)
+		t.eq(reason, "bad_input")
+	end)
+end
+
+t.test("bad_input: missing thiefId is rejected", function()
+	local req = valid()
+	req.thiefId = nil
+	local ok, reason = load("StealRules").validate(req)
+	t.eq(ok, false)
+	t.eq(reason, "bad_input")
+end)
+
+t.test("first steal ever: thiefLastStealAt nil means no cooldown", function()
+	local req = valid()
+	req.thiefLastStealAt = nil
+	t.eq((load("StealRules").validate(req)), true)
+end)
+
+t.test("boundaries: speed == MAX_MOVE_SPEED accepted, hold == 1.3 accepted", function()
+	local Config = load("Config")
+	t.eq((check({ thiefSpeed = Config.MAX_MOVE_SPEED })), true)
+	t.eq((check({ heldSeconds = Config.STEAL_HOLD - Config.STEAL_HOLD_TOLERANCE })), true)
+end)

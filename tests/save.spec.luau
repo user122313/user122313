@@ -82,11 +82,53 @@ t.test("output always has all four fields", function()
 	local S = schema()
 	for _, raw in { {}, { caps = 3 }, { treasures = "x" }, { baseLevel = 2 } } do
 		local out = S.migrate(raw)
-		t.truthy(out.version and out.caps and out.treasures and out.baseLevel)
+		t.eq(type(out.version), "number")
+		t.eq(type(out.caps), "number")
+		t.eq(type(out.treasures), "table")
+		t.eq(type(out.baseLevel), "number")
 	end
 end)
 
 t.test("caps are whole numbers", function()
 	local S = schema()
 	t.eq(S.migrate({ version = 1, caps = 12.7, treasures = {}, baseLevel = 1 }).caps, 12)
+end)
+
+t.test("isFromFuture: version above CURRENT_VERSION is detected", function()
+	local S = schema()
+	t.eq(S.isFromFuture({ version = S.CURRENT_VERSION + 1 }), true)
+	t.eq(S.isFromFuture({ version = S.CURRENT_VERSION }), false)
+	t.eq(S.isFromFuture(nil), false)
+	t.eq(S.isFromFuture({}), false)
+end)
+
+t.test("treasure list ignores non-array keys", function()
+	local S = schema()
+	local out = S.migrate({ version = 1, caps = 1, treasures = { "pizza_box", x = "golden_toaster" }, baseLevel = 1 })
+	t.eq(out.treasures, { "pizza_box" })
+end)
+
+t.test("treasure list is capped at 200 entries", function()
+	local S = schema()
+	local ids = {}
+	for i = 1, 500 do
+		ids[i] = "pizza_box"
+	end
+	t.eq(#S.migrate({ version = 1, caps = 1, treasures = ids, baseLevel = 1 }).treasures, 200)
+end)
+
+t.test("caps are capped at 1e12", function()
+	local S = schema()
+	t.eq(S.migrate({ version = 1, caps = 1e300, treasures = {}, baseLevel = 1 }).caps, 1e12)
+end)
+
+t.test("fields have the right types", function()
+	local S = schema()
+	for _, raw in { {}, { caps = "x", treasures = 5, baseLevel = {} } } do
+		local out = S.migrate(raw)
+		t.eq(type(out.version), "number")
+		t.eq(type(out.caps), "number")
+		t.eq(type(out.treasures), "table")
+		t.eq(type(out.baseLevel), "number")
+	end
 end)

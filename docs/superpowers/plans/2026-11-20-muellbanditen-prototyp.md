@@ -187,11 +187,12 @@ docs/videos/video-workflow.md   Videoablauf
 - Produces: Server-Zustand pro Dieb `{ treasureId: string, startedAt: number }`; Events `RequestStealStart(treasureId: string)`, `RequestStealCommit(treasureId: string)`; Server → Client `HudUpdate` bleibt.
 - Produces `StealService.dropCarried(player: Player)` (Schatz fällt, `DROP_RETURN` s später `returnToOwner`).
 
-- [ ] **Step 1:** `StealStart`: Server merkt `startedAt = os.clock()`, setzt `lockedBy`. Mit `StealCommit`: Server berechnet `heldSeconds = now - startedAt` (nie vom Client), ruft `StealRules.validate`; bei Erfolg `OwnerUserId` auf Dieb, Dieb trägt, `WalkSpeed = CARRY_SPEED`, Marker (`Highlight`) am Dieb. Bei Ablehnung: `lockedBy` löschen, Grund als Hinweis an den Client.
+- [ ] **Step 1:** `StealStart`: Server merkt `startedAt = os.clock()`, setzt `lockedBy`. Mit `StealCommit`: Server berechnet `heldSeconds = now - startedAt` (nie vom Client), ruft `StealRules.validate`; bei Erfolg trägt der Dieb den Schatz (`CarriedBy = Dieb`), **`OwnerUserId` bleibt beim Opfer bis der Dieb ihn im eigenen Bau ablegt** (erst dann Besitzwechsel, beide Spielstände werden im selben Schritt geändert; verhindert Verdopplung/Verlust beim Verlassen). Ein getragener Schatz kann nicht erneut geklaut werden. `WalkSpeed = CARRY_SPEED`, Marker (`Highlight`) am Dieb. Bei Ablehnung: `lockedBy` löschen, Grund als Hinweis an den Client.
 - [ ] **Step 2:** `StealController`: Taste `E` (PC) bzw. Touch-Button gedrückt halten, Fortschrittsbalken 1.5 s, Loslassen = Abbruch; Start/Commit-Events senden.
 - [ ] **Step 3:** Berührung: Besitzer (Spieler, dem der Schatz vor dem Klau gehörte) berührt den Dieb → `dropCarried`. Nach `DROP_RETURN` s: Schatz zurück zum Besitzer.
 - [ ] **Step 4:** Dieb erreicht eigenen Bau: Schatz bleibt (Task 4 `RequestPlace`), Marker weg, `WalkSpeed` normal.
 - [ ] **Step 5:** Spieler verlässt Server: `StealRules.resolveLeave` anwenden (Dieb trägt → zurück zum Besitzer; Besitzer geht → Schatz zurück an dessen Spielstand). Prüfen: nichts doppelt, nichts verloren.
+- [ ] **Step 5b:** Tempo-Check zusätzlich über die Positionsänderung pro Zeit (Server vergleicht Position zwischen Start und Commit), nicht nur `WalkSpeed`; Teleports werden so abgelehnt (`too_fast`). `StealRules.validate` bekommt dafür `thiefSpeed = Strecke / Zeit`.
 - [ ] **Step 6: Manuell prüfen** (Studio, 3 Test-Spieler): Klau gelingt nach 1.5 s; zu früh loslassen bricht ab; zwei Spieler gleichzeitig → nur einer bekommt ihn; Dieb verlässt Server → Schatz kehrt zurück; kein Exploit: im Studio über die Konsole `RequestStealCommit` ohne Start senden → Ablehnung, Server-Log zeigt Grund.
 - [ ] **Step 7: Commit** `feat: steal flow with server validation`
 - [ ] **Step 8 (Playtest + Video):** Erster Playtest mit Zwillingsbruder (OBS-Replay-Puffer an), Bugs in `STATUS.md`, Video nach Workflow.
@@ -253,6 +254,7 @@ docs/videos/video-workflow.md   Videoablauf
 - Produces: `DataService.load(player: Player): SaveData?` (nil → Spieler wird mit Hinweis gekickt, **nie** mit leerem Stand weiterspielen lassen), `DataService.get(player: Player): SaveData?`, `DataService.release(player: Player)`.
 
 - [ ] **Step 1:** ProfileStore (aktuelle Version aus dem offiziellen Repo, Lizenz prüfen) als Datei einchecken; Version und Quelle in Kommentar am Dateikopf vermerken.
+- [ ] **Step 1b:** Gehört der geladene Stand zu `SaveSchema.isFromFuture(raw) == true`, wird er **nicht überschrieben**: Spieler bekommt Hinweis und wird gekickt, Speichern für diese Sitzung ist aus (Schutz bei zurückgerolltem Update).
 - [ ] **Step 2:** `DataService`: Profil laden mit Session-Lock, `SaveSchema.migrate` auf die Daten, Auto-Save alle `AUTOSAVE_SECONDS`, bei `PlayerRemoving` und `game:BindToClose` speichern/freigeben. DataStore-Studio-Zugriff in den Spiel-Einstellungen aktivieren (Spiel einmal privat veröffentlichen).
 - [ ] **Step 3:** Verdrahten: `caps`, besessene Schätze und `baseLevel` werden beim Betreten aus `SaveData` aufgebaut und bei Änderungen in `get(player)` nachgeführt.
 - [ ] **Step 4: Manuell prüfen:** Spielen, Schatz klauen, Server beenden, neu starten → Kronkorken, Schätze, Level sind da. Zweites Fenster mit demselben Konto (Session-Lock) überschreibt nichts. Studio-Beenden mitten im Spiel verliert höchstens den letzten Auto-Save-Zeitraum.
