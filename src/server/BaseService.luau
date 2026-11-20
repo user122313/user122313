@@ -29,6 +29,25 @@ local function moveToSpawn(character: Model, spawn: BasePart)
 	character:PivotTo(spawn.CFrame + Vector3.new(0, 4, 0))
 end
 
+-- Slots above the capacity of the current level look "locked" (see-through), unlocked slots are solid.
+local LOCKED_TRANSPARENCY = 0.75
+
+-- One place that sets the level: attribute on the base (server logic), attribute on the player
+-- (the client reads "BaseLevel" for the upgrade button) and the look of the slots.
+local function applyLevel(player: Player?, base: Model, level: number)
+	base:SetAttribute("BaseLevel", level)
+	if player then
+		player:SetAttribute("BaseLevel", level)
+	end
+	local capacity = Economy.capacity(level)
+	for _, child in base:GetChildren() do
+		local index = tonumber(string.match(child.Name, "^Slot(%d+)$"))
+		if index and child:IsA("BasePart") then
+			child.Transparency = if index <= capacity then 0 else LOCKED_TRANSPARENCY
+		end
+	end
+end
+
 -- Returns the player's base, or nil if the server has no free base.
 -- No yield between "find free base" and "set owner", so two players
 -- joining at the same moment can never get the same base.
@@ -61,7 +80,7 @@ function BaseService.assign(player: Player): Model?
 	end
 
 	chosen:SetAttribute("OwnerUserId", player.UserId)
-	chosen:SetAttribute("BaseLevel", 1)
+	applyLevel(player, chosen, 1)
 	baseOfPlayer[player] = chosen
 
 	local spawn = spawnOf(chosen)
@@ -95,7 +114,8 @@ function BaseService.release(player: Player)
 
 	if base then
 		base:SetAttribute("OwnerUserId", nil)
-		base:SetAttribute("BaseLevel", 1)
+		applyLevel(nil, base, 1)
+		player:SetAttribute("BaseLevel", nil)
 		for _, child in base:GetChildren() do
 			if string.match(child.Name, "^Slot%d+$") then
 				child:SetAttribute("TreasureId", nil)
@@ -124,7 +144,7 @@ function BaseService.setLevel(player: Player, level: number)
 		return
 	end
 	local clean = if typeof(level) == "number" and level == level then level else 1
-	base:SetAttribute("BaseLevel", math.clamp(math.floor(clean), 1, #Config.BASE_CAPACITY))
+	applyLevel(player, base, math.clamp(math.floor(clean), 1, #Config.BASE_CAPACITY))
 end
 
 -- Number of usable slots of the player's base (0 without a base).

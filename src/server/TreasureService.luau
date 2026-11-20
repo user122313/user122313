@@ -622,6 +622,46 @@ function TreasureService.trySpendCaps(player: Player, amount: number): boolean
 	return true
 end
 
+-- After the base got bigger: saved treasures that had no slot (overflow) move into the new slots.
+local function fillFromOverflow(player: Player, state: State)
+	local remaining = {}
+	for _, defId in state.overflow do
+		local slot = BaseService.freeSlot(player)
+		local treasure = if slot then createTreasure(defId) else nil
+		if slot and treasure then
+			placeInSlot(treasure, player, slot)
+		else
+			table.insert(remaining, defId)
+		end
+	end
+	state.overflow = remaining
+end
+
+-- Upgrade the base one level: costs Config.UPGRADE_COST bottle caps, unlocks more slots.
+-- Check, payment, level change and overflow refill happen in one step without yielding.
+function TreasureService.tryUpgrade(player: Player): (boolean, string?)
+	local state = states[player]
+	local base = BaseService.baseOf(player)
+	if not state or not state.live or not base then
+		return false, "no_state"
+	end
+	local level = base:GetAttribute("BaseLevel")
+	level = if typeof(level) == "number" then level else 1
+	if not Economy.canUpgrade(level, state.caps) then
+		hint(player, if level >= #Config.BASE_CAPACITY then "Your base is already maxed out!" else "Not enough bottle caps!")
+		return false, if level >= #Config.BASE_CAPACITY then "max_level" else "no_caps"
+	end
+	if not TreasureService.trySpendCaps(player, Config.UPGRADE_COST) then
+		return false, "no_caps"
+	end
+	BaseService.setLevel(player, level + 1)
+	fillFromOverflow(player, state)
+	TreasureService.syncSave(player)
+	sendHud(player)
+	Remotes.get("Announce"):FireClient(player, "Base upgraded! More room for trash!", "rare")
+	return true, nil
+end
+
 -- Builds the player's runtime state from his loaded save. Call after DataService.load succeeded
 -- and after BaseService.assign. Never yields. New players get their start treasure from
 -- SaveSchema.default(), not from here.
@@ -740,6 +780,9 @@ function TreasureService.start()
 	treasureFolder = folder
 
 	attachPlacePrompts()
+	Remotes.get("RequestUpgradeBase").OnServerEvent:Connect(function(player)
+		TreasureService.tryUpgrade(player)
+	end)
 	-- Players join/leave through Main (addPlayer / removePlayer), because the save must be loaded first.
 
 	-- Garbage truck

@@ -19,7 +19,9 @@
   - `STORE_NAME = "PlayerData"` in `DataService.luau` NIE mehr ändern, sobald das Spiel öffentlich ist (sonst starten alle leer).
   - Überlauf-Schätze wandern nach einem Ausbau noch nicht in neue Plätze: kommt mit Task 11.
 - **Ideen für weitere Fallen und Upgrades** stehen in `IDEEN.md` (frühestens nach dem Prüfpunkt in Woche 4).
-- **Als Nächstes:** Codex baut die UI (Brief ist aktuell), Claude Task 11 (Ausbaustufe, Überlauf in neue Plätze, Hinweise), danach Task 12 (Handy, Veröffentlichung).
+- **Task 11 Server-Teil fertig (20.11.2026):** Ausbau per `RequestUpgradeBase` (in `TreasureService.tryUpgrade`, weil dort die Kronkorken liegen; Abweichung vom Plan, der `BaseService` nennt). Kostet `UPGRADE_COST`, schaltet Slots 5 bis 8 frei (gesperrte Slots sind durchsichtig), Überlauf-Schätze ziehen in die neuen Plätze, der Spielstand wird sofort aktualisiert, Spieler-Attribut `BaseLevel` für die UI. Studio-Check mit 2 Spielern grün (zu wenig Kronkorken, genau die Kosten abgezogen, Stufe 2 an Bau/Spieler/Spielstand, Maximum, Überlauf, 7. Schatz passt, Weg über das echte Remote vom Client).
+- **Offen für Task 11:** die 3 Einführungshinweise und der Upgrade-Button sind UI (Codex).
+- **Als Nächstes:** Codex baut die UI (Brief ist aktuell), danach Task 12 (Handy-Test, Veröffentlichung, Zahlen).
 - **Blockiert:** Alles mit Roblox Studio braucht deinen Laptop.
 
 - **Creator-Name (entschieden):** `SamyDev` (überall gleich: Roblox, YouTube, TikTok, Instagram). Verfügbarkeit noch prüfen; wenn belegt, überall dieselbe Variante.

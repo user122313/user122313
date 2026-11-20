@@ -18,6 +18,7 @@ Spielname: Müllbanditen (englischer Titel folgt). Waschbären, Müll, Slapstick
 6. **Slip text**: „SLIPPED!“ groß in der Mitte, kurzes Kamera-Wackeln.
 7. **Hints** (nur erste Minute, überspringbar, max. 3): „Grab trash in the middle“, „Hold E at another base to steal“, „Buy banana peels to stop thieves“.
 8. **Banana buttons** (klein, am Rand, Daumen-tauglich): „Buy banana (50)“ und „Place banana“ mit Anzeige, wie viele Schalen im Vorrat sind (Attribut `Bananas` am Spieler). Gedacht für PC und Handy.
+9. **Upgrade button** (klein, am Rand): „Upgrade base (500)“ sendet `RequestUpgradeBase()` (ohne Argumente). Nur sichtbar, solange `LocalPlayer:GetAttribute("BaseLevel")` kleiner als 2 ist (Attribut am Spieler, Änderungen per `GetAttributeChangedSignal`). Kosten stehen in `Config.UPGRADE_COST`. Erfolg und Fehler kommen als `Announce` (z. B. „Base upgraded! More room for trash!“, `rare`).
 
 ## Daten, die der Server schickt (RemoteEvents in `ReplicatedStorage.Remotes`)
 - `HudUpdate(caps: number, incomePerSec: number)`
