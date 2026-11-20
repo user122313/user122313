@@ -8,6 +8,9 @@ Neue Ideen kommen hierher, nicht ins Spiel. Höchstens eine pro Woche wird über
 4. Lärm-Falle (klappernde Tonne)
 5. Kein Pay-to-win, wenn Robux dann nur kosmetisch
 
+## Map (Wunsch vom 20.11.2026, Samet)
+- Größere Abstände zwischen den Häusern (Bauen). Technisch nur eine Zahl: `RADIUS` in `tools/BuildMap.luau` von 70 auf z. B. 90 erhöhen und das Skript in Studio neu laufen lassen (Bauten und Abladeplatz werden neu erzeugt; vorher handgemachte Änderungen an der Map gehen verloren). Dann Gegencheck: Tragetempo 12 gegen Lauftempo 16 muss immer noch knappe Verfolgungen ergeben. Entscheidung nach dem ersten Playtest mit Bilal in Woche 2.
+
 ## Weitere Fallen (Idee vom 20.11.2026, Samet: „mehrere kreative Fallen")
 Gemeinsame Regeln: gleicher Ablauf wie die Bananenschale (kaufen, im eigenen Bau platzieren, Fremder löst aus), eigene Kosten, Maximalzahl, Ausnahme für den Besitzer. Reihenfolge nach Aufwand, einfachste zuerst.
 - Kaugummi-Fleck: Fremder wird für ein paar Sekunden stark verlangsamt (nur WalkSpeed, sehr einfach)
