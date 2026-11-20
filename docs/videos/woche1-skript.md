@@ -1,84 +1,88 @@
-# Woche 1 Video: Skript-Entwurf (Englisch, zum Sprechen)
+# Woche 1 Video: Skript (Version 2, Englisch, zum Sprechen)
 
 **Thema laut Spec:** „Ich habe noch nie ein Projekt beendet. Jetzt baue ich ein Roblox-Spiel.“
-**Länge:** ca. 3 bis 4 Minuten. **Sprache im Video: Englisch.** Dieses Dokument ist die Stütze, gesprochen wird in deinen eigenen Worten und in deinem Tempo. Streich alles, was sich falsch anfühlt.
+**Länge:** ca. 3 Minuten. **Sprache im Video: Englisch.** Dieses Dokument ist die Stütze, gesprochen wird in deinen eigenen Worten und in deinem Tempo. Streich alles, was sich falsch anfühlt.
 **Video-Tag:** Sonntag (Vorschlag der Spec, du kannst ihn ändern). Ein rohes, kurzes Video ist besser als keins.
+**Version 2 (21.11.2026):** nach dem Video-Review von Codex überarbeitet. Neu: Hook mit dem Sturz, das Spiel an einem Schatz erklärt, der echte Fehler mit der Taste E, kürzere persönliche Motivation, ehrlicher Stand.
 
 > Ehrlicher Hinweis zum Stil: Dein Schreibstil-Profil kennt bisher nur formelle E-Mails. Das hier ist kein Text „in deiner Stimme“, sondern ein einfacher Entwurf. Lies ihn einmal laut und ändere jeden Satz, bei dem du dich verstellst.
 
-## Entscheidung für dich, bevor du aufnimmst
-Das Video sagt, dass der Code von einer KI geschrieben wird. Das stimmt, und es ist der ehrlichste Weg (Zuschauer merken es sowieso). Wenn du das nicht sagen willst, streich den Abschnitt „How I build it“. Meine Empfehlung: drin lassen. Du entscheidest das Spiel, die KI tippt.
+## Zwei Dinge, die vor der Aufnahme stimmen müssen
+1. **Waschbären:** Im Spiel laufen aktuell die normalen Roblox-Figuren herum, **keine** Waschbären. Sag im Video deshalb nicht „you play a raccoon“, sondern: „The idea is that you play a raccoon. Right now these are default Roblox characters.“ (Das steht schon so im Skript unten.)
+2. **KI:** Das Video sagt, dass eine KI den Code schreibt und du das Spiel bestimmst. Das ist der ehrlichste Weg. Wenn du das nicht sagen willst, streich den einen Satz in Abschnitt 4. Meine Empfehlung: drin lassen.
 
 ## Skript
 
-### 1. Hook (0 bis 10 s)
-*Bild: ein Clip, in dem ein grauer Waschbär jemandem einen Schatz klaut und dann auf einer Bananenschale ausrutscht.*
+### 1. Hook (0 bis 15 s)
+*Bild: Clip, in dem ein Spieler einen Schatz klaut und danach auf einer Bananenschale ausrutscht und durch die Luft fliegt. Lass den Sturz kurz für sich sprechen.*
 
-> I have never finished a project. Not one. This time I'm building a whole Roblox game, and I'll show you every week how it goes.
-
-### 2. Das Spiel (10 bis 40 s)
-*Bild: Flug über die graue Map, die 6 Baue, der Müllwagen-Platz in der Mitte.*
-
-> The game is called Trash Bandits. You play a raccoon. Every few seconds a garbage truck dumps treasure in the middle: old socks, pizza boxes, sometimes a golden toaster.
+> I just stole a treasure from my friend's base. Then I stepped on a banana peel.
 >
-> You carry it home and it earns you bottle caps. But the other raccoons can steal it from your base. And you can put banana peels in their way.
+> This is Trash Bandits, a Roblox game I'm building.
 
-### 3. Warum ich das mache (40 bis 70 s)
-*Bild: Studio, Rojo, der Code im Hintergrund, ruhig.*
+*(Wenn im Clip wirklich ein goldener Toaster zu sehen ist, sag stattdessen: „I stole a golden toaster in my own Roblox game. Then I stepped on a banana peel.“ Sonst nenne den Schatz, den man im Bild sieht.)*
 
-> I start a lot of things and finish almost none. So this time I made a deal with myself. Ninety days. One game. One video every week, even if it's rough.
+### 2. Das Spiel an einem Schatz (15 bis 70 s)
+*Bild in dieser Reihenfolge: Schatz erscheint am Abladeplatz, du hebst ihn auf und trägst ihn heim (Schatz schwebt über dem Kopf), du legst ihn im Bau ab, der Kronkorken-Zähler steigt (HUD zeigen), dann klaut ein anderer Spieler ihn.*
+
+> The idea is that you play a raccoon. Right now these are default Roblox characters.
 >
-> If it fails, you will see that too.
-
-### 4. How I build it (70 bis 110 s) *(optional, siehe Entscheidung oben)*
-*Bild: Claude Code im Terminal, daneben Studio.*
-
-> I'm new to Roblox and Lua, so I don't write the code myself. An AI writes it, and I decide what the game should be. I also check that it really works, because the AI can be wrong.
+> Every twenty seconds a garbage truck drops treasure in the middle. You pick it up and carry it home. In your base it earns bottle caps, you can see the counter going up.
 >
-> The first rule: the server decides everything. Money, who owns what, who stole what. Your computer only asks.
+> But another player can walk up, hold a button, and steal it from you. If you catch the thief, they drop it.
 
-### 5. Was diese Woche passiert ist (110 bis 190 s)
-*Bild: drei graue Test-Spieler in Studio. Hier die Clips aus dem Mehrspieler-Test zeigen.*
+### 3. Warum ich das mache (70 bis 85 s, höchstens 15 Sekunden)
+*Bild: ruhig, Studio im Hintergrund.*
 
-> This week I got the whole base game running, without any good graphics yet.
+> I've never finished a project. So this time I made a deal with myself: ninety days, one game, one video every week, even if it's rough.
+
+### 4. Ein echter Fehler (85 bis 140 s)
+*Bild: Hinweis „Hold E to steal“ im Spiel, dann der Hinweis „Drop here“ mit der Taste F, dann das Halten von E mit dem Fortschrittsbalken „STEALING…“ und der erfolgreiche Klau.*
+
+> Here is a real bug. I held E to steal, and nothing happened. The server never even got the request.
 >
-> Every player gets their own base. Treasure falls in the middle, you pick it up and carry it home. Stealing takes one and a half seconds of holding a button. If the owner runs into you, you drop it.
+> The problem: Roblox's own grab and drop prompts also used the E key, and they always win. So I moved grab and drop to F. After that, stealing worked.
 >
-> Then I tested the hard cases. What if two players steal the same thing at the same moment? Only the first one gets it. What if the thief leaves the game while carrying it? It goes back to the owner. Nothing gets lost.
+> An AI writes most of the code, but I check every change by playing the game myself.
 
-*Optional, ein lustiger Moment (nimm den, der wirklich passiert ist):*
+### 5. Wo es gerade steht, ehrlich (140 bis 165 s)
+*Bild: kurz die graue Map, das HUD, die Buttons.*
 
-> And then the banana peel. It threw my test player way too high, and he landed on the other side of the base. I'm keeping it. It's funny.
+> Right now it's a grey map with a basic HUD, no sound yet, and I haven't played it with real people.
+>
+> I tested the hard cases with test players. For example, if a thief left the game while carrying a treasure, in that test the treasure went back to its owner.
 
-### 6. Was noch fehlt, ehrlich (190 bis 215 s)
-> Right now it looks like a grey box. There is no real menu yet, no sound, and I haven't played it with a real person. That's next.
-
-### 7. Ausblick (215 bis 230 s)
+### 6. Ausblick (165 bis 180 s)
 > Next week my brother and I play it for the first time. I expect it to break. See you then.
 
 ## Titel-Vorschläge (3 Varianten)
-1. `I've never finished a project. So I'm making a Roblox game.`
-2. `Day 1 of 90: raccoons, garbage and banana peels (Roblox devlog)`
+1. `I stole trash in my own Roblox game, then slipped on a banana peel`
+2. `I've never finished a project. So I'm making a Roblox game.`
 3. `Making a Roblox game where you steal trash from your friends`
 
-Tipp: Titel 3 sagt in einer Zeile, was das Spiel ist. Titel 1 ist stärker für den Kanal. Teste beide im Kopf: Würdest du darauf klicken?
+Tipp: Titel 1 zeigt den Clip, Titel 2 ist stärker für den Kanal. Beide passen zu der neuen Hook-Reihenfolge. Teste im Kopf: Würdest du darauf klicken?
+
+## Thumbnail-Texte (2 bis 4 große Wörter, Standbild aus dem Sturz-Clip)
+- `BANANA PEEL FAIL`
+- `I STOLE TRASH`
+- `WHO STOLE IT?`
 
 ## Kapitel
-- 0:00 The hook
-- 0:10 The game
-- 0:40 Why I'm doing this
-- 1:10 How I build it
-- 1:50 What I built this week
-- 3:10 What's missing
-- 3:35 Next week
+- 0:00 The banana peel
+- 0:15 The game in one treasure
+- 1:10 Why I'm doing this
+- 1:25 A real bug
+- 2:20 Where it stands
+- 2:45 Next week
 
 ## Clips, die du noch aufnehmen musst (ca. 30 Minuten, OBS, Replay-Puffer an)
-Nichts davon ist bisher aufgenommen. Das geht alles in Studio, ohne Freunde:
-1. **Map-Flug:** Studio-Kamera über die 6 Baue und den Abladeplatz (10 s).
-2. **Müllwagen:** Schätze erscheinen am Abladeplatz (10 s).
-3. **Aufheben und Heimtragen:** ein Spieler trägt einen Schatz, über dem Kopf schwebt er (10 s).
-4. **Klau:** Mehrspieler-Test (Server und Clients, 3 Spieler), ein Spieler klaut einem anderen den Schatz (15 s).
-5. **Bananenschale:** ein Spieler rutscht aus und fliegt durch die Luft (10 s). Das ist dein bester Clip.
-6. **Studio-Test-Ansicht:** drei Fenster nebeneinander (5 s), sieht nach „echtes Entwickeln“ aus.
+Das HUD ist jetzt eingebaut, nimm die Clips damit auf. Nimm lieber ein paar Sekunden zu viel auf. Für die Szenen mit zwei Spielern nutze in Studio **Test, Server und Clients**, so kannst du selbst beide Seiten zeigen.
+1. **Sturz (Hook):** Klau, dann Bananenschale und Flug durch die Luft (15 s). Der beste Clip, lass ihn zuerst aufnehmen.
+2. **Müllwagen:** Schatz erscheint am Abladeplatz (10 s).
+3. **Aufheben und Heimtragen:** Schatz schwebt über dem Kopf, im Bau ablegen, Kronkorken-Zähler steigt (20 s).
+4. **Klau mit E-Halten:** Hinweis „Hold E to steal“, Fortschrittsbalken „STEALING…“, Schatz wechselt (15 s).
+5. **Der Fehler (Abschnitt 4):** Du hältst E und es passiert nichts, dann zeigst du kurz „Drop here“ mit F (10 s). Den „Vorher“-Zustand gibt es im Spiel nicht mehr, nimm ihn nach: halte E an einem Schatz und zeige einfach die jetzige Taste F am Hinweis. Sag dazu, was vorher war.
+6. **Studio-Test-Ansicht:** drei Fenster nebeneinander (5 s).
+7. **Handy im Emulator** (optional, 5 s): zeigt, dass du auch auf Handys denkst.
 
-Hinweis: Das Spiel hat noch keine UI. Auf den Clips sieht man Namensschilder über den Schätzen und die Roblox-Hinweise „Grab“ und „Drop here“, aber keine Kronkorken-Anzeige. Das ist ok und wird im Video offen gesagt. Mit Codex-UI werden die Clips schöner. Nimm sie lieber danach auf, wenn die UI bis Sonntag fertig ist, sonst jetzt und im nächsten Video die UI zeigen.
+Hinweis: Roter Alarm-Rand, „SLIPPED!“ mit Kamera-Wackeln und das Banner für seltene Klaus habe ich selbst noch nicht auf dem Bildschirm gesehen. Wenn sie beim Aufnehmen erscheinen, nimm sie mit, wenn nicht, sprich nicht darüber.
