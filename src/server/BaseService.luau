@@ -137,6 +137,19 @@ function BaseService.freeSlot(player: Player): BasePart?
 	return nil
 end
 
+-- True if the player stands on the floor of his own base (not above it, not outside).
+function BaseService.isInsideOwnBase(player: Player): boolean
+	local base = baseOfPlayer[player]
+	local floor = base and base:FindFirstChild("Floor")
+	local character = player.Character
+	local root = character and character:FindFirstChild("HumanoidRootPart")
+	if not floor or not floor:IsA("BasePart") or not root or not root:IsA("BasePart") then
+		return false
+	end
+	local rel = floor.CFrame:PointToObjectSpace(root.Position)
+	return math.abs(rel.X) <= floor.Size.X / 2 and math.abs(rel.Z) <= floor.Size.Z / 2 and rel.Y <= 15
+end
+
 function BaseService.start()
 	Players.PlayerAdded:Connect(BaseService.assign)
 	Players.PlayerRemoving:Connect(BaseService.release)

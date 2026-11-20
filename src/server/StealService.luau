@@ -37,6 +37,7 @@ local HINTS = {
 	own_treasure = "That's already yours!",
 	too_fast = "Stand still while stealing!",
 	no_start = "Hold the button to steal!",
+	slipping = "You're slipping!",
 	timeout = "Too slow, the steal was cancelled!",
 }
 
@@ -127,6 +128,11 @@ local function onStealStart(player: Player, treasureId: any)
 	end
 	-- A new start always ends the old hold first.
 	clearHold(player)
+	-- Nobody steals while sliding on a banana peel.
+	if player:GetAttribute("Slipping") == true then
+		reject(player, "slipping", treasureId)
+		return
+	end
 
 	local treasure, ownerId, why = stealable(player, treasureId)
 	if not treasure or not ownerId then
@@ -175,6 +181,10 @@ local function onStealCommit(player: Player, treasureId: any)
 	local hold = holds[player]
 	if not hold or hold.treasureId ~= treasureId then
 		reject(player, "no_start", treasureId)
+		return
+	end
+	if player:GetAttribute("Slipping") == true then
+		reject(player, "slipping", treasureId)
 		return
 	end
 

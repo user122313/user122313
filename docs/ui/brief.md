@@ -17,6 +17,7 @@ Spielname: Müllbanditen (englischer Titel folgt). Waschbären, Müll, Slapstick
 5. **Announce banner** (oben, 3 s): z. B. „⚠ Alex stole the GOLDEN TOASTER!“, Farbe nach Seltenheit (`rare`, `legendary`).
 6. **Slip text**: „SLIPPED!“ groß in der Mitte, kurzes Kamera-Wackeln.
 7. **Hints** (nur erste Minute, überspringbar, max. 3): „Grab trash in the middle“, „Hold E at another base to steal“, „Buy banana peels to stop thieves“.
+8. **Banana buttons** (klein, am Rand, Daumen-tauglich): „Buy banana (50)“ und „Place banana“ mit Anzeige, wie viele Schalen im Vorrat sind (Attribut `Bananas` am Spieler). Gedacht für PC und Handy.
 
 ## Daten, die der Server schickt (RemoteEvents in `ReplicatedStorage.Remotes`)
 - `HudUpdate(caps: number, incomePerSec: number)`

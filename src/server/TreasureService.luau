@@ -310,6 +310,9 @@ function TreasureService.tryPickup(player: Player, treasure: Instance): (boolean
 	if typeof(id) ~= "string" or treasures[id] ~= treasure then
 		return false, "invalid"
 	end
+	if player:GetAttribute("Slipping") == true then
+		return false, "slipping"
+	end
 	if state.carrying then
 		hint(player, "Your hands are full!")
 		return false, "carrying"
@@ -519,6 +522,17 @@ local function sendHud(player: Player)
 	if state then
 		Remotes.get("HudUpdate"):FireClient(player, state.caps, incomeOf(player))
 	end
+end
+
+-- Takes bottle caps from the player if he has enough. Returns true on success.
+function TreasureService.trySpendCaps(player: Player, amount: number): boolean
+	local state = states[player]
+	if not state or amount < 0 or state.caps < amount then
+		return false
+	end
+	state.caps -= amount
+	sendHud(player)
+	return true
 end
 
 local function onPlayerAdded(player: Player)
