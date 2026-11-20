@@ -23,6 +23,9 @@ type Hold = { treasure: Model, treasureId: string, startedAt: number, startPos: 
 
 local holds: { [Player]: Hold } = {}
 local lastStealAt: { [Player]: number } = {}
+-- When a player's steal request was last rejected (a Commit that follows right after is expected, no second hint).
+local lastRejectAt: { [Player]: number } = {}
+local REJECT_QUIET_SECONDS = 6
 local dropTokens: { [Model]: number } = {}
 local nextToken = 0
 
@@ -75,6 +78,7 @@ local function clearHold(player: Player)
 end
 
 local function reject(player: Player, reason: string, treasureId: string?)
+	lastRejectAt[player] = os.clock()
 	clearHold(player)
 	warn(`[StealService] {player.Name} rejected: {reason} ({treasureId or "?"})`)
 	hint(player, reason)
@@ -184,6 +188,11 @@ local function onStealCommit(player: Player, treasureId: any)
 	end
 	local hold = holds[player]
 	if not hold or hold.treasureId ~= treasureId then
+		-- The client keeps holding after a rejected Start and sends Commit on release: stay quiet then.
+		if os.clock() - (lastRejectAt[player] or -1000) < REJECT_QUIET_SECONDS then
+			warn(`[StealService] {player.Name} commit after a rejected start ignored`)
+			return
+		end
 		reject(player, "no_start", treasureId)
 		return
 	end
@@ -277,6 +286,7 @@ local function onPlayerRemoving(player: Player)
 	-- Thief leaves mid-hold: free the lock.
 	clearHold(player)
 	lastStealAt[player] = nil
+	lastRejectAt[player] = nil
 	-- Owner leaves: cancel every hold on his treasures (they leave with his base).
 	-- Collect first, then clear, so the table is not changed while looping over it.
 	local cancelled = {}

@@ -183,12 +183,18 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 	stealButton.Size = UDim2.fromScale(0.23, 0.24)
 	stealButton.BackgroundColor3 = COLORS.accent
 	stealButton.TextColor3 = COLORS.background
-	stealButton.TextSize = Theme.textSize.hud
+	-- The word must stay on ONE line on small phones: scale the text to the button (never below the hint size).
+	stealButton.TextWrapped = false
+	stealButton.TextScaled = true
 	stealButton.Visible = false
 	stealButton.ZIndex = 3
+	local stealTextSize = Instance.new("UITextSizeConstraint")
+	stealTextSize.MinTextSize = Theme.textSize.hint
+	stealTextSize.MaxTextSize = Theme.textSize.hud
+	stealTextSize.Parent = stealButton
 	local buttonSize = Instance.new("UISizeConstraint")
-	buttonSize.MinSize = Vector2.new(72, 72)
-	buttonSize.MaxSize = Vector2.new(100, 100)
+	buttonSize.MinSize = Vector2.new(92, 92)
+	buttonSize.MaxSize = Vector2.new(112, 112)
 	buttonSize.Parent = stealButton
 	local buttonRatio = Instance.new("UIAspectRatioConstraint")
 	buttonRatio.AspectRatio = 1
