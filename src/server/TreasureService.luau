@@ -274,6 +274,8 @@ local function createTreasure(defId: string): Model?
 	prompt.HoldDuration = 0.2
 	prompt.MaxActivationDistance = Config.STEAL_REACH
 	prompt.RequiresLineOfSight = false
+	-- Key F: key E belongs to stealing (client StealController); Roblox prompts always win a shared key.
+	prompt.KeyboardKeyCode = Enum.KeyCode.F
 	prompt.Enabled = false
 	prompt.Parent = body
 	prompt.Triggered:Connect(function(player)
@@ -765,6 +767,7 @@ local function attachPlacePrompts()
 			prompt.HoldDuration = 0.2
 			prompt.MaxActivationDistance = 22
 			prompt.RequiresLineOfSight = false
+			prompt.KeyboardKeyCode = Enum.KeyCode.F -- E is for stealing
 			prompt.Parent = floor
 			prompt.Triggered:Connect(function(player)
 				TreasureService.tryPlace(player)
