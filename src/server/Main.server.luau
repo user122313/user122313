@@ -1,1 +1,1 @@
-print("Müllbanditen läuft")
+print("Muellbanditen server running")
