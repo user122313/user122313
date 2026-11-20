@@ -1,0 +1,33 @@
+local t = require("./lib/t")
+local load = require("./lib/load")
+
+t.test("canBuy false below BANANA_COST, true at cost", function()
+	local TrapRules, Config = load("TrapRules"), load("Config")
+	t.eq(TrapRules.canBuy(Config.BANANA_COST - 1), false)
+	t.eq(TrapRules.canBuy(Config.BANANA_COST), true)
+end)
+
+t.test("canPlace rejects the 4th banana", function()
+	local TrapRules, Config = load("TrapRules"), load("Config")
+	local ok, reason = TrapRules.canPlace(Config.MAX_BANANAS, true)
+	t.eq(ok, false)
+	t.eq(reason, "max_traps")
+	t.eq((TrapRules.canPlace(Config.MAX_BANANAS - 1, true)), true)
+end)
+
+t.test("canPlace rejects outside own base", function()
+	local TrapRules = load("TrapRules")
+	local ok, reason = TrapRules.canPlace(0, false)
+	t.eq(ok, false)
+	t.eq(reason, "not_in_base")
+end)
+
+t.test("slipOutcome carrying drops loot, helpless SLIP_SECONDS", function()
+	local TrapRules, Config = load("TrapRules"), load("Config")
+	t.eq(TrapRules.slipOutcome(true), { helplessSeconds = Config.SLIP_SECONDS, dropsLoot = true })
+end)
+
+t.test("slipOutcome empty-handed does not drop", function()
+	local TrapRules, Config = load("TrapRules"), load("Config")
+	t.eq(TrapRules.slipOutcome(false), { helplessSeconds = Config.SLIP_SECONDS, dropsLoot = false })
+end)

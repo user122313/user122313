@@ -21,6 +21,13 @@ function Economy.capacity(baseLevel: number): number
 	return Config.BASE_CAPACITY[baseLevel] or Config.BASE_CAPACITY[1]
 end
 
+function Economy.canUpgrade(baseLevel: number, caps: number): boolean
+	if baseLevel >= #Config.BASE_CAPACITY then
+		return false
+	end
+	return caps >= Config.UPGRADE_COST
+end
+
 -- r liegt in [0, 1). Schwellen kommen aus Config.DUMP_WEIGHTS.
 function Economy.rollRarity(r: number): Rarity
 	local w = Config.DUMP_WEIGHTS
