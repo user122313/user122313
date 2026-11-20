@@ -1,7 +1,7 @@
 # Design: Roblox-Chaos-Spiel (Arbeitstitel „Müllbanditen“)
 
 - **Datum:** 2026-11-20
-- **Status:** Entwurf, wartet auf Bestätigung durch den Nutzer (siehe Abschnitt 9)
+- **Status:** Vom Nutzer freigegeben am 2026-11-20 (Antworten siehe Ende von Abschnitt 9)
 - **Für wen:** den Nutzer (Entscheidungen) und den Builder (Claude Code auf dem Windows-Laptop, der daraus einen Umsetzungsplan macht)
 - **Wichtig:** Alles, was mit **[VORSCHLAG]** markiert ist, hat der Nutzer noch nicht entschieden. Der Builder darf damit planen, aber Woche 1 startet erst, wenn der Nutzer den Themen-Twist bestätigt oder ausgetauscht hat.
 
@@ -302,3 +302,12 @@ Mögliche Ergebnisse: **weitermachen** (Spiel ausbauen, Kanal 2 hochfahren), **S
 4. **Playtester:** Wer genau testet in Woche 2 (Namen oder Anzahl, ungefähres Alter), und wann können sie?
 5. **Videos:** Auf Deutsch oder Englisch? Mit deiner Stimme, Text-Einblendungen oder KI-Stimme? (Beeinflusst Aufwand und Reichweite stark.)
 6. **Roblox-Konto:** Hast du ein Konto, mit dem du Spiele veröffentlichen kannst (Alter, Verifizierung), oder muss das noch eingerichtet werden?
+
+### Antworten des Nutzers (2026-11-20) und Entscheidungen daraus
+
+1. **Twist:** „Müllbanditen“ bestätigt.
+2. **Zeit:** bis zu 14 h/Woche bei wenig Schulstress. **Planungswert: 8–10 h/Woche** (Claudes Call, damit Schulwochen den Rhythmus nicht brechen; alles darüber ist Bonus).
+3. **Starttag/Video-Tag:** Nutzer hat keine Präferenz genannt. **Claudes Vorschlag:** Start Montag, Video-Tag Sonntag. Nutzer kann ändern.
+4. **Playtester:** Zwillingsbruder für Woche 2. Fremde ab Woche 4.
+5. **Videos:** Nutzer will nicht selbst schneiden, Sprechen ist okay. Erste 4 Wochen: eigene Stimme als Voice-over, Schnitt weitgehend automatisiert (siehe `docs/videos/video-workflow.md`).
+6. **Roblox-Konto:** vorhanden.
