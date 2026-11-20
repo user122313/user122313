@@ -312,6 +312,10 @@ Mögliche Ergebnisse: **weitermachen** (Spiel ausbauen, Kanal 2 hochfahren), **S
 5. **Videos:** Nutzer will nicht selbst schneiden, Sprechen ist okay. Erste 4 Wochen: eigene Stimme als Voice-over, Schnitt weitgehend automatisiert (siehe `docs/videos/video-workflow.md`).
 6. **Roblox-Konto:** vorhanden.
 
+### Entscheidung zum Titel (2026-11-20)
+
+Der Spieltitel für Spieler und Zuschauer ist **Trash Bandits** (statt des deutschen Arbeitstitels „Müllbanditen“). Intern bleiben Ordner, Dateinamen und Konsolenmeldungen bei `Muellbanditen`. Vor dem Veröffentlichen prüfen: Name auf Roblox, YouTube und TikTok frei, überall gleiche Schreibweise.
+
 ### Entscheidung zur Sprache (2026-11-20, nach Rückfrage)
 
 Nutzer entscheidet: **alles auf Englisch** (Spiel-Texte, Schatz-Namen, Ansagen, Videos mit Voice-over, Titel, Kanalnamen). Ersetzt die frühere Annahme „Devlog Deutsch + englische Untertitel“. Die Dokumente im Repo bleiben auf Deutsch (nur für den Nutzer), alles, was Spieler oder Zuschauer sehen, ist Englisch. Der Nutzer will UI-Texte und Sprecher-Skripte von Claude gegenlesen lassen.

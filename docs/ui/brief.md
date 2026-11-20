@@ -4,7 +4,7 @@
 **Nicht anfassen:** `src/server/*`, `src/shared/*` (außer lesen). Brauchst du etwas Neues (Datenfeld, Event), schreib es als Wunsch an den Nutzer, erfinde nichts.
 
 ## Stil
-Spielname: Müllbanditen (englischer Titel folgt). Waschbären, Müll, Slapstick. Alle sichtbaren Texte **Englisch**, kurz, laut, übertrieben. Farben, Schrift, Radius: `src/shared/Theme.luau` verwenden, keine eigenen Farbwerte im UI-Code. Dicke Schrift, große Zahlen, starker Kontrast. Muss am **Handy** gut lesbar sein (kleiner Bildschirm, Daumen).
+Spielname: **Trash Bandits** (entschieden am 20.11.2026). Waschbären, Müll, Slapstick. Alle sichtbaren Texte **Englisch**, kurz, laut, übertrieben. Farben, Schrift, Radius: `src/shared/Theme.luau` verwenden, keine eigenen Farbwerte im UI-Code. Dicke Schrift, große Zahlen, starker Kontrast. Muss am **Handy** gut lesbar sein (kleiner Bildschirm, Daumen).
 
 ## UI wird per Code gebaut
 `Hud.luau` erzeugt das ScreenGui und alle Elemente selbst (kein Studio-Klicken). Animationen über `TweenService`. Layout mit `UIListLayout`/`UIAspectRatioConstraint`, nicht mit festen Pixelpositionen. Auf Handy und PC testbar (Studio-Geräteemulator).

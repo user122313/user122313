@@ -19,7 +19,7 @@ Das Video sagt, dass der Code von einer KI geschrieben wird. Das stimmt, und es 
 ### 2. Das Spiel (10 bis 40 s)
 *Bild: Flug über die graue Map, die 6 Baue, der Müllwagen-Platz in der Mitte.*
 
-> The game is called Müllbanditen. You play a raccoon. Every few seconds a garbage truck dumps treasure in the middle: old socks, pizza boxes, sometimes a golden toaster.
+> The game is called Trash Bandits. You play a raccoon. Every few seconds a garbage truck dumps treasure in the middle: old socks, pizza boxes, sometimes a golden toaster.
 >
 > You carry it home and it earns you bottle caps. But the other raccoons can steal it from your base. And you can put banana peels in their way.
 

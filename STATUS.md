@@ -27,3 +27,4 @@
 
 - **Creator-Name (entschieden):** `SamyDev` (überall gleich: Roblox, YouTube, TikTok, Instagram). Verfügbarkeit noch prüfen; wenn belegt, überall dieselbe Variante.
 - **Sprache:** alles Englisch (Spiel, Videos, Kanäle).
+- **Spieltitel (entschieden 20.11.2026): Trash Bandits.** Intern bleiben Ordner, Dateinamen und Konsolenmeldungen bei `Muellbanditen`. Verfügbarkeit auf Roblox, YouTube und TikTok noch prüfen, dann überall dieselbe Schreibweise.
