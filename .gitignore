@@ -2,3 +2,5 @@
 place/backups/
 *.rbxl.lock
 .obsidian/
+
+*.zip
