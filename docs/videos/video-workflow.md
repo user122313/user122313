@@ -1,5 +1,7 @@
 # Video-Workflow Devlog (Kanal 1)
 
+**Sprache: Englisch** (Voice-over, Titel, Beschreibung, Thumbnails, Untertitel). Dieses Dokument ist nur für dich auf Deutsch. Sprecher-Skripte schreibt Claude auf Englisch in einfachen Sätzen, die du natürlich sprechen kannst, und liest sie vor der Aufnahme gegen.
+
 **Ziel:** Jede Woche ein Video, ohne dass du selbst stundenlang schneidest. Du **filmst und sprichst**, der Rest ist so weit wie möglich automatisiert.
 
 **Ehrlich vorweg:**

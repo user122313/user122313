@@ -311,3 +311,7 @@ Mögliche Ergebnisse: **weitermachen** (Spiel ausbauen, Kanal 2 hochfahren), **S
 4. **Playtester:** Zwillingsbruder für Woche 2. Fremde ab Woche 4.
 5. **Videos:** Nutzer will nicht selbst schneiden, Sprechen ist okay. Erste 4 Wochen: eigene Stimme als Voice-over, Schnitt weitgehend automatisiert (siehe `docs/videos/video-workflow.md`).
 6. **Roblox-Konto:** vorhanden.
+
+### Entscheidung zur Sprache (2026-11-20, nach Rückfrage)
+
+Nutzer entscheidet: **alles auf Englisch** (Spiel-Texte, Schatz-Namen, Ansagen, Videos mit Voice-over, Titel, Kanalnamen). Ersetzt die frühere Annahme „Devlog Deutsch + englische Untertitel“. Die Dokumente im Repo bleiben auf Deutsch (nur für den Nutzer), alles, was Spieler oder Zuschauer sehen, ist Englisch. Der Nutzer will UI-Texte und Sprecher-Skripte von Claude gegenlesen lassen.
