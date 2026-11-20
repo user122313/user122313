@@ -81,8 +81,8 @@ function BaseService.assign(player: Player): Model?
 	return chosen
 end
 
--- Frees the base. Treasures inside are handled by TreasureService (Task 4+)
--- before this is called.
+-- Frees the base. Treasures inside are handled by TreasureService.removePlayer
+-- before this is called (see Main).
 function BaseService.release(player: Player)
 	local base = baseOfPlayer[player]
 	baseOfPlayer[player] = nil
@@ -117,14 +117,33 @@ function BaseService.baseOf(player: Player): Model?
 	return baseOfPlayer[player]
 end
 
+-- Sets the base level (from the save on join), clamped to the levels that exist.
+function BaseService.setLevel(player: Player, level: number)
+	local base = baseOfPlayer[player]
+	if not base then
+		return
+	end
+	local clean = if typeof(level) == "number" and level == level then level else 1
+	base:SetAttribute("BaseLevel", math.clamp(math.floor(clean), 1, #Config.BASE_CAPACITY))
+end
+
+-- Number of usable slots of the player's base (0 without a base).
+function BaseService.capacityOf(player: Player): number
+	local base = baseOfPlayer[player]
+	if not base then
+		return 0
+	end
+	local level = base:GetAttribute("BaseLevel")
+	return Economy.capacity(if typeof(level) == "number" then level else 1)
+end
+
 -- First empty slot within the capacity of the base level, or nil if the base is full.
 function BaseService.freeSlot(player: Player): BasePart?
 	local base = baseOfPlayer[player]
 	if not base then
 		return nil
 	end
-	local level = base:GetAttribute("BaseLevel")
-	local capacity = Economy.capacity(if typeof(level) == "number" then level else 1)
+	local capacity = BaseService.capacityOf(player)
 	for i = 1, capacity do
 		local slot = base:FindFirstChild(`Slot{i}`)
 		if slot and slot:IsA("BasePart") then
@@ -150,13 +169,6 @@ function BaseService.isInsideOwnBase(player: Player): boolean
 	return math.abs(rel.X) <= floor.Size.X / 2 and math.abs(rel.Z) <= floor.Size.Z / 2 and rel.Y <= 15
 end
 
-function BaseService.start()
-	Players.PlayerAdded:Connect(BaseService.assign)
-	Players.PlayerRemoving:Connect(BaseService.release)
-	-- Players that joined before this script ran
-	for _, player in Players:GetPlayers() do
-		BaseService.assign(player)
-	end
-end
+-- No start(): Main calls assign (only after the save loaded) and release (when the player leaves).
 
 return BaseService

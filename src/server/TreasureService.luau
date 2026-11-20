@@ -5,6 +5,10 @@
 --   InSlot (true only while it really sits in that slot), LockedBy (0 = nobody, else a thief mid-steal).
 -- Players grab/place with ProximityPrompts (works on PC and phone); the server re-checks everything.
 -- A stolen treasure keeps the victim's OwnerUserId until the thief places it in his own base.
+-- Saving: the runtime state here is the truth. TreasureService.syncSave(player) copies it into
+-- DataService.get(player): caps, the DefIds of ALL treasures with OwnerUserId == player (also while a
+-- thief carries one or it lies dropped), plus "overflow" ids that did not fit into the base on join,
+-- and the base level. It is called after every change that matters and right before every save.
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -15,13 +19,18 @@ local Catalog = require(Shared.Catalog)
 local Config = require(Shared.Config)
 local Economy = require(Shared.Economy)
 local Remotes = require(Shared.Remotes)
+local SaveSchema = require(Shared.SaveSchema)
 local StealRules = require(Shared.StealRules)
 local Theme = require(Shared.Theme)
 local BaseService = require(script.Parent.BaseService)
+local DataService = require(script.Parent.DataService)
 
 local TreasureService = {}
 
-type State = { caps: number, carrying: Model? }
+-- overflow: saved treasure ids that had no free slot on join; they stay in the save, never dropped.
+-- loadedLevel: base level from the save (used if the player has no base model).
+-- live: true between addPlayer and removePlayer; only then syncSave writes into the save.
+type State = { caps: number, carrying: Model?, overflow: { string }, loadedLevel: number, live: boolean }
 
 local states: { [Player]: State } = {}
 local treasures: { [string]: Model } = {}
@@ -365,7 +374,10 @@ function TreasureService.tryPlace(player: Player): (boolean, string?)
 	end
 	-- Ownership changes here, in one step without yielding: the victim's reserved slot
 	-- is freed and the thief's slot is filled, so nothing can be duplicated or lost.
+	-- Both saves are updated in the same step (no yield between).
+	local victimId: number? = nil
 	if isStolenBy(treasure, player) then
+		victimId = treasure:GetAttribute("OwnerUserId")
 		local oldSlot = homeSlotOf(treasure)
 		if oldSlot then
 			oldSlot:SetAttribute("TreasureId", nil)
@@ -375,6 +387,11 @@ function TreasureService.tryPlace(player: Player): (boolean, string?)
 	setSpeed(player, Config.WALK_SPEED)
 	setMarker(player, false)
 	placeInSlot(treasure, player, slot)
+	TreasureService.syncSave(player)
+	local victim = if victimId then Players:GetPlayerByUserId(victimId) else nil
+	if victim then
+		TreasureService.syncSave(victim)
+	end
 	return true, nil
 end
 
@@ -464,9 +481,21 @@ function TreasureService.returnToOwner(treasure: Instance)
 		local slot = base and typeof(slotName) == "string" and base:FindFirstChild(slotName)
 		if owner and slot and slot:IsA("BasePart") then
 			placeInSlot(treasure, owner, slot)
+			TreasureService.syncSave(owner)
 			return
 		end
+		-- Owner still playing but his slot is gone (should not happen): keep the treasure in his
+		-- save as overflow instead of losing it. A leaving owner was already saved with it.
+		local ownerState = owner and states[owner]
+		local defId = treasure:GetAttribute("DefId")
+		if owner and ownerState and ownerState.live and typeof(defId) == "string" then
+			warn(`[TreasureService] no slot for returning {defId}, kept in {owner.Name}'s save as overflow`)
+			table.insert(ownerState.overflow, defId)
+		end
 		destroyTreasure(treasure)
+		if owner then
+			TreasureService.syncSave(owner)
+		end
 		return
 	end
 	placeAtDump(treasure)
@@ -506,6 +535,63 @@ function TreasureService.getCaps(player: Player): number
 	return if state then state.caps else 0
 end
 
+local function slotNumber(treasure: Model): number
+	local slotName = treasure:GetAttribute("SlotName")
+	local n = if typeof(slotName) == "string" then tonumber(string.match(slotName, "^Slot(%d+)$")) else nil
+	return n or math.huge
+end
+
+local function levelOf(player: Player, state: State): number
+	local base = BaseService.baseOf(player)
+	local level = base and base:GetAttribute("BaseLevel")
+	if typeof(level) == "number" then
+		return level
+	end
+	return state.loadedLevel
+end
+
+-- Copies the live state of this player into his save data (DataService.get). Never yields.
+-- Saved treasures = every treasure he owns (in a slot, carried by a thief, or dropped), ordered
+-- by slot so a reload puts them back in the same places, then the overflow ids.
+function TreasureService.syncSave(player: Player)
+	local state = states[player]
+	if not state or not state.live then
+		return
+	end
+	local data = DataService.get(player)
+	if not data then
+		return
+	end
+	local owned: { Model } = {}
+	for _, treasure in treasures do
+		if treasure:GetAttribute("OwnerUserId") == player.UserId then
+			table.insert(owned, treasure)
+		end
+	end
+	table.sort(owned, function(a, b)
+		local sa, sb = slotNumber(a), slotNumber(b)
+		if sa ~= sb then
+			return sa < sb
+		end
+		return tostring(a:GetAttribute("TreasureId")) < tostring(b:GetAttribute("TreasureId"))
+	end)
+	local ids = {}
+	for _, treasure in owned do
+		table.insert(ids, treasure:GetAttribute("DefId"))
+	end
+	for _, id in state.overflow do
+		table.insert(ids, id)
+	end
+	local clean = SaveSchema.fromRuntime(state.caps, ids, levelOf(player, state))
+	if #clean.treasures < #ids then
+		warn(`[TreasureService] {player.Name}: {#ids - #clean.treasures} treasure id(s) could not be saved`)
+	end
+	data.version = clean.version
+	data.caps = clean.caps
+	data.treasures = clean.treasures
+	data.baseLevel = clean.baseLevel
+end
+
 local function incomeOf(player: Player): number
 	local ids = {}
 	-- Only treasures really sitting in their owner's slot pay (not carried, stolen or dropped).
@@ -532,24 +618,44 @@ function TreasureService.trySpendCaps(player: Player, amount: number): boolean
 	end
 	state.caps -= amount
 	sendHud(player)
+	TreasureService.syncSave(player)
 	return true
 end
 
-local function onPlayerAdded(player: Player)
-	states[player] = { caps = 0, carrying = nil }
-	local base = BaseService.assign(player)
+-- Builds the player's runtime state from his loaded save. Call after DataService.load succeeded
+-- and after BaseService.assign. Never yields. New players get their start treasure from
+-- SaveSchema.default(), not from here.
+function TreasureService.addPlayer(player: Player, data: SaveSchema.SaveData)
+	if states[player] then
+		return
+	end
+	local base = BaseService.baseOf(player)
 	if base then
+		BaseService.setLevel(player, data.baseLevel)
+	end
+	-- No base (server had none free): every treasure waits as overflow, nothing is lost.
+	local capacity = if base then BaseService.capacityOf(player) else 0
+	local placed, overflow = SaveSchema.splitByCapacity(data.treasures, capacity)
+	local state: State = { caps = data.caps, carrying = nil, overflow = overflow, loadedLevel = data.baseLevel, live = false }
+	states[player] = state
+	for _, defId in placed do
 		local slot = BaseService.freeSlot(player)
-		local start = createTreasure(Catalog.startTreasureId)
-		if start and slot then
-			placeInSlot(start, player, slot)
+		local treasure = if slot then createTreasure(defId) else nil
+		if slot and treasure then
+			placeInSlot(treasure, player, slot)
+		else
+			warn(`[TreasureService] could not place {defId} for {player.Name}, kept as overflow`)
+			table.insert(state.overflow, defId)
 		end
+	end
+	if #state.overflow > 0 then
+		print(`[TreasureService] {player.Name}: {#state.overflow} treasure(s) did not fit and stay in the save`)
 	end
 	-- Death or respawn while carrying: the treasure goes back (stolen -> victim's slot, dump -> dump).
 	local function returnCarried()
-		local state = states[player]
-		if state and state.carrying then
-			TreasureService.returnToOwner(state.carrying)
+		local current = states[player]
+		if current and current.carrying then
+			TreasureService.returnToOwner(current.carrying)
 		end
 	end
 	local function hookCharacter(character: Model)
@@ -567,11 +673,20 @@ local function onPlayerAdded(player: Player)
 		task.spawn(hookCharacter, player.Character)
 	end
 	player.CharacterRemoving:Connect(returnCarried)
+	state.live = true
+	-- Writes the save once in the runtime order (placed by slot, then overflow).
+	TreasureService.syncSave(player)
 	sendHud(player)
 end
 
-local function onPlayerRemoving(player: Player)
+-- Removes the player's runtime state. Call AFTER the final TreasureService.syncSave(player):
+-- from here on his save is not touched any more (his treasures leave the map but stay in his save,
+-- also one a thief is carrying right now: the owner never lost it).
+function TreasureService.removePlayer(player: Player)
 	local state = states[player]
+	if state then
+		state.live = false
+	end
 	-- Leaving thief: StealRules decides (carrying -> back to the owner's slot).
 	if state and state.carrying then
 		if StealRules.resolveLeave("thief", true) == "return_to_owner" then
@@ -579,8 +694,9 @@ local function onPlayerRemoving(player: Player)
 		end
 	end
 	-- Leaving owner: his base disappears with its contents. For a treasure a thief is carrying,
-	-- StealRules says "return_to_owner" = back into the owner's save data (Task 10), so it leaves
-	-- with the base too; the same goes for one lying dropped on the ground.
+	-- StealRules says "return_to_owner" = back into the owner's save data: it still has his
+	-- OwnerUserId, so the final syncSave (Main, before this) kept it in his save. It leaves the map
+	-- with the base; the same goes for one lying dropped on the ground.
 	-- destroyTreasure also clears the thief's carry state, speed and glow.
 	-- ownedBy returns a new list, so destroying while looping is safe.
 	for _, treasure in TreasureService.ownedBy(player) do
@@ -624,12 +740,7 @@ function TreasureService.start()
 	treasureFolder = folder
 
 	attachPlacePrompts()
-
-	Players.PlayerAdded:Connect(onPlayerAdded)
-	Players.PlayerRemoving:Connect(onPlayerRemoving)
-	for _, player in Players:GetPlayers() do
-		onPlayerAdded(player)
-	end
+	-- Players join/leave through Main (addPlayer / removePlayer), because the save must be loaded first.
 
 	-- Garbage truck
 	task.spawn(function()
@@ -646,6 +757,7 @@ function TreasureService.start()
 			for player, state in states do
 				state.caps += incomeOf(player)
 				sendHud(player)
+				TreasureService.syncSave(player)
 			end
 		end
 	end)
