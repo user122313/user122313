@@ -26,10 +26,10 @@
 
 ## Review Focus
 
-1. **Zwei Diebe klauen gleichzeitig denselben Schatz:** nur der erste bekommt ihn, der zweite bekommt `locked`. (Task 6)
-2. **Dieb oder Besitzer verlässt mitten im Klau den Server:** Schatz geht zurück an den Besitzer, nichts verdoppelt sich, nichts geht verloren. (Task 7)
+1. **Zwei Diebe klauen gleichzeitig denselben Schatz:** nur der erste bekommt ihn, der zweite bekommt `locked`. (Task 5, 6)
+2. **Dieb oder Besitzer verlässt mitten im Klau den Server:** Schatz geht zurück an den Besitzer, nichts verdoppelt sich, nichts geht verloren. (Task 5, 6)
 3. **Voller Bau:** man kann nichts aufheben oder klauen, die Aktion wird mit klarem Grund abgelehnt. (Task 4, 6)
-4. **Kaputter, leerer oder alter Spielstand (`nil`, falsche Version, negative Kronkorken, unbekannte Schatz-IDs):** Spieler startet mit sinnvollen Werten, kein Absturz, kein Verlust gültiger Teile. (Task 10)
+4. **Kaputter, leerer oder alter Spielstand (`nil`, falsche Version, negative Kronkorken, unbekannte Schatz-IDs):** Spieler startet mit sinnvollen Werten, kein Absturz, kein Verlust gültiger Teile. (Task 9)
 5. **Handy-Bedienung:** Taste-halten-zum-Klauen muss auch per Touch funktionieren. (Task 12)
 
 ---
