@@ -16,6 +16,9 @@ return {
 	CARRY_SPEED = 12, -- knapp unter Laufgeschwindigkeit: knappe Verfolgungen
 	MAX_MOVE_SPEED = 30, -- darüber: Verdacht auf Cheat
 	DROP_RETURN = 10, -- Sekunden bis ein fallengelassener Schatz zurückkehrt
+	STEAL_LOCK_TIMEOUT = 4, -- seconds until an unfinished steal frees the treasure again
+	OWNER_TOUCH_RADIUS = 5, -- studs: owner this close to the thief makes the loot fall
+	OWNER_TOUCH_CHECK = 0.1, -- seconds between owner-touch checks
 
 	-- Fallen
 	BANANA_COST = 50,
