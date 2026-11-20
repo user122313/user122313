@@ -13,6 +13,7 @@ Remotes.names = {
 	"RequestPlaceBanana",
 	"RequestUpgradeBase",
 	"Slipped", -- server -> client: slip duration
+	"StealAlarm", -- server -> owner: thiefName (someone started stealing from you)
 }
 
 local FOLDER_NAME = "Remotes"

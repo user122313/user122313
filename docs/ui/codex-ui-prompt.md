@@ -17,6 +17,8 @@ Stand des Servers (so funktioniert es schon, baue dafür keine eigene UI):
 - Hinweise an einen einzelnen Spieler (z. B. „Your base is full!“) kommen als `Announce(text, "common")`. Zeig sie als kurzes Banner, auch wenn `rarity` = `common` ist.
 - `HudUpdate(caps, incomePerSec)` kommt jede Sekunde.
 - Bananenschalen (Element 8 im Brief): Zwei Buttons, „Buy banana (50)“ sendet `RequestBuyBanana()`, „Place banana“ sendet `RequestPlaceBanana()` (ohne Argumente, der Server stellt sie vor dem Spieler in seinen eigenen Bau). Wie viele Schalen der Spieler im Vorrat hat, steht im Spieler-Attribut `Bananas` (`LocalPlayer:GetAttribute("Bananas")`, Änderungen per `GetAttributeChangedSignal`). Fehlermeldungen („Not enough bottle caps!“ usw.) kommen als `Announce(text, "common")`.
+- `StealAlarm(thiefName)` kommt nur beim Besitzer an, sobald jemand bei ihm zu klauen beginnt: roter Rand blinkt, Text „SOMEONE IS STEALING!“ (du kannst den Namen des Diebs ergänzen).
+- `Announce(text, rarity)` für seltene und legendäre Klaus kommt an ALLE Spieler. Der Text ist schon fertig formuliert („⚠ Alex stole the GOLDEN TOASTER!“), du färbst das Banner nach `rarity`.
 - `Slipped(seconds)`: Der Server schleudert den Spieler selbst weg, der Client zeigt nur „SLIPPED!“ und das Kamera-Wackeln.
 - Lies zuerst `STATUS.md` im Projektordner.
 

@@ -22,6 +22,7 @@ Spielname: Müllbanditen (englischer Titel folgt). Waschbären, Müll, Slapstick
 ## Daten, die der Server schickt (RemoteEvents in `ReplicatedStorage.Remotes`)
 - `HudUpdate(caps: number, incomePerSec: number)`
 - `Announce(text: string, rarity: "common" | "rare" | "legendary")`
+- `StealAlarm(thiefName: string)` (nur an den Besitzer, sobald jemand bei ihm zu klauen beginnt; Element 4)
 - `Slipped(seconds: number)`
 - Der Client schickt nur Bitten: `RequestStealStart(treasureId: string)`, `RequestStealCommit(treasureId: string)`. Zeit und Ergebnis entscheidet der Server, der Client zeigt nur an.
 

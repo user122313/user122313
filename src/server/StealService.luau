@@ -9,9 +9,11 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 
 local Shared = ReplicatedStorage.Shared
+local Catalog = require(Shared.Catalog)
 local Config = require(Shared.Config)
 local Remotes = require(Shared.Remotes)
 local StealRules = require(Shared.StealRules)
+local Announcer = require(script.Parent.Announcer)
 local BaseService = require(script.Parent.BaseService)
 local TreasureService = require(script.Parent.TreasureService)
 
@@ -163,6 +165,8 @@ local function onStealStart(player: Player, treasureId: any)
 		startPos = root.Position,
 		token = token,
 	}
+	-- Warning signal for the victim while the hold is running.
+	Announcer.stealAlarm(ownerId, player.Name)
 
 	-- The thief never commits: free the treasure again.
 	task.delay(Config.STEAL_LOCK_TIMEOUT, function()
@@ -222,6 +226,10 @@ local function onStealCommit(player: Player, treasureId: any)
 	end
 	lastStealAt[player] = now
 	print(`[StealService] {player.Name} stole {treasure.Name} from user {ownerId}`)
+	local def = Catalog.get(treasure:GetAttribute("DefId"))
+	if def then
+		Announcer.treasureStolen(player.Name, def)
+	end
 end
 
 -- The carried treasure falls to the ground; DROP_RETURN seconds later it goes back to its owner.
