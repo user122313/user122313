@@ -109,7 +109,7 @@ local function slip(player: Player, bananaPosition: Vector3)
 		end
 		player:SetAttribute("Slipping", nil)
 		local h, r = aliveRoot(player)
-		if h and r then
+		if h and r and player.Character == slippedCharacter then
 			-- Stop all motion before the player gets his character back, otherwise
 			-- the client replays an old throw and the character jumps once more.
 			r.AssemblyLinearVelocity = Vector3.zero
