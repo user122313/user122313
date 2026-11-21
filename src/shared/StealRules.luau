@@ -63,6 +63,14 @@ function StealRules.validate(req: StealRequest): (boolean, string?)
 	return true, nil
 end
 
+-- Did the thief leave the treasure's reach during a running hold? Broken numbers cancel the hold.
+function StealRules.holdBroken(distance: number): boolean
+	if not isGoodNumber(distance) then
+		return true
+	end
+	return distance > Config.STEAL_REACH + Config.STEAL_HOLD_REACH_TOLERANCE
+end
+
 -- Did a carrier jump (teleport) between two position samples?
 -- Allowed: MAX_MOVE_SPEED over the elapsed time plus TELEPORT_SLACK. Broken numbers count as a jump.
 function StealRules.teleportSuspected(distance: number, seconds: number): boolean

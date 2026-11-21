@@ -16,6 +16,8 @@ TreasureService.start()
 StealService.start()
 TrapService.start()
 
+local MSG_NO_BASE = "This server is full. Please try another server."
+
 -- Players whose leave was already handled (weak keys: no memory kept after they are gone).
 local hasLeft: { [Player]: boolean } = setmetatable({}, { __mode = "k" }) :: any
 
@@ -32,7 +34,14 @@ local function onJoin(player: Player)
 		DataService.release(player)
 		return
 	end
-	BaseService.assign(player)
+	if not BaseService.assign(player) then
+		-- No free base (e.g. a 7th player): never let him play without one. Give the save back
+		-- unchanged, then kick him with a clear message. Nothing was built for him.
+		warn(`[Main] no free base for {player.Name}, kicking`)
+		DataService.release(player)
+		player:Kick(MSG_NO_BASE)
+		return
+	end
 	TreasureService.addPlayer(player, data)
 end
 

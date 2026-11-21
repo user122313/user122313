@@ -16,6 +16,14 @@ function TrapRules.canPlace(placed: number, inOwnBase: boolean): (boolean, strin
 	return true, nil
 end
 
+-- Is the victim really close to the peel (distance root to peel center)? Broken numbers: no.
+function TrapRules.bananaTouchValid(distance: number): boolean
+	if type(distance) ~= "number" or distance ~= distance or distance < 0 then
+		return false
+	end
+	return distance <= Config.BANANA_TRIGGER_RADIUS
+end
+
 function TrapRules.slipOutcome(carrying: boolean): { helplessSeconds: number, dropsLoot: boolean }
 	return { helplessSeconds = Config.SLIP_SECONDS, dropsLoot = carrying }
 end

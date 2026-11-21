@@ -31,3 +31,18 @@ t.test("slipOutcome empty-handed does not drop", function()
 	local TrapRules, Config = load("TrapRules"), load("Config")
 	t.eq(TrapRules.slipOutcome(false), { helplessSeconds = Config.SLIP_SECONDS, dropsLoot = false })
 end)
+
+-- Review: a peel only counts when the victim is really close to it.
+t.test("bananaTouchValid: close victim triggers the peel", function()
+	local TrapRules, Config = load("TrapRules"), load("Config")
+	t.eq(TrapRules.bananaTouchValid(0), true)
+	t.eq(TrapRules.bananaTouchValid(Config.BANANA_TRIGGER_RADIUS), true)
+end)
+
+t.test("bananaTouchValid: far victim or broken number does not trigger", function()
+	local TrapRules, Config = load("TrapRules"), load("Config")
+	t.eq(TrapRules.bananaTouchValid(Config.BANANA_TRIGGER_RADIUS + 0.1), false)
+	t.eq(TrapRules.bananaTouchValid(0 / 0), false)
+	t.eq(TrapRules.bananaTouchValid(-1), false)
+	t.eq(TrapRules.bananaTouchValid(nil :: any), false)
+end)

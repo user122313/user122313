@@ -190,3 +190,24 @@ t.test("boundaries: speed == MAX_MOVE_SPEED accepted, hold == 1.3 accepted", fun
 	t.eq((check({ thiefSpeed = Config.MAX_MOVE_SPEED })), true)
 	t.eq((check({ heldSeconds = Config.STEAL_HOLD - Config.STEAL_HOLD_TOLERANCE })), true)
 end)
+
+-- Review: the thief must stay near the treasure during the whole hold, not only at start and end.
+t.test("holdBroken: within STEAL_REACH plus tolerance is fine", function()
+	local Rules, Config = load("StealRules"), load("Config")
+	t.eq(Rules.holdBroken(0), false)
+	t.eq(Rules.holdBroken(Config.STEAL_REACH), false)
+	t.eq(Rules.holdBroken(Config.STEAL_REACH + Config.STEAL_HOLD_REACH_TOLERANCE), false)
+end)
+
+t.test("holdBroken: beyond the tolerance cancels the hold", function()
+	local Rules, Config = load("StealRules"), load("Config")
+	t.eq(Rules.holdBroken(Config.STEAL_REACH + Config.STEAL_HOLD_REACH_TOLERANCE + 0.1), true)
+end)
+
+t.test("holdBroken: broken numbers cancel the hold", function()
+	local Rules = load("StealRules")
+	t.eq(Rules.holdBroken(0 / 0), true)
+	t.eq(Rules.holdBroken(-1), true)
+	t.eq(Rules.holdBroken(math.huge), true)
+	t.eq(Rules.holdBroken(nil :: any), true)
+end)

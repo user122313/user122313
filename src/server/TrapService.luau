@@ -79,6 +79,8 @@ local function slip(player: Player, bananaPosition: Vector3)
 	end
 	slipping[player] = true
 	player:SetAttribute("Slipping", true)
+	-- Remember WHICH character slipped: after a respawn the timer below must leave the new one alone.
+	local slippedCharacter = player.Character
 
 	local outcome = TrapRules.slipOutcome(TreasureService.carriedBy(player) ~= nil)
 	if outcome.dropsLoot then

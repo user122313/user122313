@@ -11,6 +11,8 @@ return {
 	STEAL_HOLD = 1.5, -- Sekunden Taste halten
 	STEAL_HOLD_TOLERANCE = 0.2, -- Netzwerk-Toleranz (Server misst die Zeit)
 	STEAL_REACH = 8, -- Studs
+	STEAL_HOLD_REACH_TOLERANCE = 3, -- studs a thief may drift beyond STEAL_REACH during a hold before it is cancelled (lag)
+	STEAL_HOLD_CHECK = 0.1, -- seconds between distance checks while a hold is running
 	STEAL_COOLDOWN = 3, -- Sekunden zwischen zwei Klauen
 	WALK_SPEED = 16,
 	CARRY_SPEED = 12, -- knapp unter Laufgeschwindigkeit: knappe Verfolgungen
@@ -28,6 +30,7 @@ return {
 	-- Fallen
 	BANANA_COST = 50,
 	MAX_BANANAS = 3,
+	BANANA_TRIGGER_RADIUS = 7, -- studs from the peel center to the victim root (feet touch + lag); farther touches are ignored
 	SLIP_SECONDS = 2,
 
 	-- Wirtschaft

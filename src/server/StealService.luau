@@ -310,6 +310,24 @@ local function checkOwnerTouches()
 	end
 end
 
+-- While a hold runs the thief must stay near the treasure, otherwise he could step away and
+-- come back right before the commit (start and end positions alone would look fine).
+local function checkHolds()
+	local broken = {}
+	for thief, hold in holds do
+		local root, body = rootOf(thief), hold.treasure.PrimaryPart
+		if not root or not body or StealRules.holdBroken((root.Position - body.Position).Magnitude) then
+			table.insert(broken, thief)
+		end
+	end
+	for _, thief in broken do
+		local hold = holds[thief]
+		if hold then
+			reject(thief, "too_far", hold.treasureId)
+		end
+	end
+end
+
 local function onPlayerRemoving(player: Player)
 	-- Thief leaves mid-hold: free the lock.
 	clearHold(player)
@@ -354,8 +372,14 @@ function StealService.start()
 		onPlayerAdded(player)
 	end
 
+	local holdElapsed = 0
 	local elapsed = 0
 	RunService.Heartbeat:Connect(function(dt)
+		holdElapsed += dt
+		if holdElapsed >= Config.STEAL_HOLD_CHECK then
+			holdElapsed = 0
+			checkHolds()
+		end
 		elapsed += dt
 		if elapsed >= Config.OWNER_TOUCH_CHECK then
 			elapsed = 0
