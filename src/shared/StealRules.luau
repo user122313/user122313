@@ -63,6 +63,23 @@ function StealRules.validate(req: StealRequest): (boolean, string?)
 	return true, nil
 end
 
+-- Did a carrier jump (teleport) between two position samples?
+-- Allowed: MAX_MOVE_SPEED over the elapsed time plus TELEPORT_SLACK. Broken numbers count as a jump.
+function StealRules.teleportSuspected(distance: number, seconds: number): boolean
+	if not isGoodNumber(distance) or not isGoodNumber(seconds) then
+		return true
+	end
+	return distance > Config.MAX_MOVE_SPEED * seconds + Config.TELEPORT_SLACK
+end
+
+-- How long a thief must wait before he may start a steal again, after `failures` failed starts in a row.
+function StealRules.retryDelay(failures: number): number
+	if type(failures) ~= "number" or failures ~= failures or failures <= 0 then
+		return 0
+	end
+	return Config.STEAL_RETRY_DELAY * math.min(math.floor(failures), Config.STEAL_RETRY_MAX_STEPS)
+end
+
 -- carrying: wird der Schatz gerade von einem Dieb getragen?
 function StealRules.resolveLeave(role: "thief" | "owner", carrying: boolean): "return_to_owner" | "none"
 	if carrying then

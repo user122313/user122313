@@ -286,6 +286,34 @@ local function createTreasure(defId: string): Model?
 	return model
 end
 
+-- Last known position of a player who carries a STOLEN treasure (to catch teleports, see carrierJumped).
+local carryTrack: { [Player]: { pos: Vector3, at: number } } = {}
+
+-- Set by StealService: what happens to a thief who jumped (the loot falls and goes back to its owner).
+TreasureService.onCarrierJumped = nil :: ((Player) -> ())?
+
+-- True if a player who carries a stolen treasure moved further since the last sample than a walking
+-- player can (teleport). Takes a new sample each time. Called every 0.1 s by StealService and by tryPlace.
+function TreasureService.carrierJumped(player: Player): boolean
+	local state = states[player]
+	local treasure = state and state.carrying
+	if not treasure or not isStolenBy(treasure, player) then
+		carryTrack[player] = nil
+		return false
+	end
+	local root = rootOf(player)
+	if not root then
+		return false
+	end
+	local now = os.clock()
+	local last = carryTrack[player]
+	carryTrack[player] = { pos = root.Position, at = now }
+	if not last then
+		return false
+	end
+	return StealRules.teleportSuspected((root.Position - last.pos).Magnitude, now - last.at)
+end
+
 -- The player now carries the treasure (slower, treasure floats above the head).
 function TreasureService.giveTo(player: Player, treasure: Instance): boolean
 	local state = states[player]
@@ -296,6 +324,8 @@ function TreasureService.giveTo(player: Player, treasure: Instance): boolean
 		return false
 	end
 	state.carrying = treasure
+	local carrierRoot = rootOf(player)
+	carryTrack[player] = if carrierRoot then { pos = carrierRoot.Position, at = os.clock() } else nil
 	treasure:SetAttribute("CarriedBy", player.UserId)
 	treasure:SetAttribute("LockedBy", 0)
 	-- SlotName stays: a stolen treasure keeps its slot in the victim's base reserved.
@@ -358,6 +388,21 @@ function TreasureService.tryPlace(player: Player): (boolean, string?)
 	local treasure = state and state.carrying
 	if not state or not treasure then
 		return false, "not_carrying"
+	end
+	-- The body of the carried treasure is gone: give the owner his treasure back, nothing is placed.
+	if not treasure.PrimaryPart then
+		TreasureService.returnToOwner(treasure)
+		return false, "lost"
+	end
+	-- A thief who teleported with stolen loot does not get to keep it (spec 6.2: speed check while carrying).
+	if TreasureService.carrierJumped(player) then
+		warn(`[TreasureService] {player.Name} jumped while carrying, loot returned`)
+		hint(player, "Too fast! The treasure slipped away.")
+		local onJumped = TreasureService.onCarrierJumped
+		if onJumped then
+			onJumped(player)
+		end
+		return false, "too_fast"
 	end
 	local base, root = BaseService.baseOf(player), rootOf(player)
 	local floor = base and base:FindFirstChild("Floor")
@@ -467,12 +512,58 @@ function TreasureService.ownedBy(player: Player): { Instance }
 	return result
 end
 
+-- Unowned dump treasure disappears DUMP_DESPAWN seconds after it lay down on the dump.
+-- A token makes sure only the newest timer counts (the treasure may be picked up and returned again).
+local function scheduleDespawn(treasure: Model)
+	local previous = treasure:GetAttribute("DespawnToken")
+	local token = (if typeof(previous) == "number" then previous else 0) + 1
+	treasure:SetAttribute("DespawnToken", token)
+	task.delay(Config.DUMP_DESPAWN, function()
+		if
+			treasure.Parent
+			and treasure:GetAttribute("DespawnToken") == token
+			and treasure:GetAttribute("OwnerUserId") == 0
+			and treasure:GetAttribute("CarriedBy") == 0
+		then
+			destroyTreasure(treasure)
+		end
+	end)
+end
+
+-- The treasure's Body is gone (for example it fell into the void while carried), the model is useless.
+-- The owner must not lose his treasure: free his reserved slot and rebuild it from its DefId.
+local function recoverLost(treasure: Model)
+	local ownerId = treasure:GetAttribute("OwnerUserId")
+	local defId = treasure:GetAttribute("DefId")
+	local owner = if typeof(ownerId) == "number" and ownerId ~= 0 then Players:GetPlayerByUserId(ownerId) else nil
+	local state = owner and states[owner]
+	local base = owner and BaseService.baseOf(owner)
+	local slotName = treasure:GetAttribute("SlotName")
+	if base and typeof(slotName) == "string" then
+		local slot = base:FindFirstChild(slotName)
+		if slot and slot:GetAttribute("TreasureId") == treasure:GetAttribute("TreasureId") then
+			slot:SetAttribute("TreasureId", nil)
+		end
+	end
+	destroyTreasure(treasure)
+	if owner and state and state.live and typeof(defId) == "string" then
+		warn(`[TreasureService] treasure {defId} lost its body, rebuilt for {owner.Name}`)
+		table.insert(state.overflow, defId)
+		TreasureService.refill(owner)
+		TreasureService.syncSave(owner)
+	end
+end
+
 -- Treasure goes back to where it belongs: the owner's slot, or the dump if it has no owner.
 function TreasureService.returnToOwner(treasure: Instance)
-	if not treasure:IsA("Model") or not treasure.PrimaryPart then
+	if not treasure:IsA("Model") then
 		return
 	end
 	clearCarrier(treasure)
+	if not treasure.PrimaryPart then
+		recoverLost(treasure)
+		return
+	end
 	detach(treasure)
 
 	local ownerId = treasure:GetAttribute("OwnerUserId")
@@ -502,6 +593,7 @@ function TreasureService.returnToOwner(treasure: Instance)
 	end
 	placeAtDump(treasure)
 	setPromptEnabled(treasure, true)
+	scheduleDespawn(treasure)
 end
 
 -- One new treasure on the dump site (rarity by weight). Removed again if nobody takes it.
@@ -520,15 +612,7 @@ function TreasureService.spawnAtDump(): Instance?
 	end
 	placeAtDump(treasure)
 	setPromptEnabled(treasure, true)
-	task.delay(Config.DUMP_DESPAWN, function()
-		if
-			treasure.Parent
-			and treasure:GetAttribute("OwnerUserId") == 0
-			and treasure:GetAttribute("CarriedBy") == 0
-		then
-			destroyTreasure(treasure)
-		end
-	end)
+	scheduleDespawn(treasure)
 	return treasure
 end
 
@@ -639,6 +723,14 @@ local function fillFromOverflow(player: Player, state: State)
 	state.overflow = remaining
 end
 
+-- Puts saved treasures without a slot (overflow) into free slots, if there are any.
+function TreasureService.refill(player: Player)
+	local state = states[player]
+	if state then
+		fillFromOverflow(player, state)
+	end
+end
+
 -- Upgrade the base one level: costs Config.UPGRADE_COST bottle caps, unlocks more slots.
 -- Check, payment, level change and overflow refill happen in one step without yielding.
 function TreasureService.tryUpgrade(player: Player): (boolean, string?)
@@ -662,6 +754,18 @@ function TreasureService.tryUpgrade(player: Player): (boolean, string?)
 	sendHud(player)
 	Remotes.get("Announce"):FireClient(player, "Base upgraded! More room for trash!", "rare")
 	return true, nil
+end
+
+-- Gives bottle caps to a player (for example the refund of banana peels he bought but did not place).
+function TreasureService.addCaps(player: Player, amount: number): boolean
+	local state = states[player]
+	if not state or type(amount) ~= "number" or amount ~= amount or amount <= 0 then
+		return false
+	end
+	state.caps += amount
+	sendHud(player)
+	TreasureService.syncSave(player)
+	return true
 end
 
 -- Builds the player's runtime state from his loaded save. Call after DataService.load succeeded
@@ -726,6 +830,7 @@ end
 -- also one a thief is carrying right now: the owner never lost it).
 function TreasureService.removePlayer(player: Player)
 	local state = states[player]
+	carryTrack[player] = nil
 	if state then
 		state.live = false
 	end

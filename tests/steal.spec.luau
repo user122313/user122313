@@ -103,6 +103,37 @@ t.test("check order: locked wins over too_far", function()
 	t.eq(reason, "locked")
 end)
 
+t.test("teleportSuspected: a normal run is fine, a jump is not", function()
+	local StealRules = load("StealRules")
+	-- carrying at CARRY_SPEED 12 for 0.1 s moves about 1.2 studs
+	t.eq(StealRules.teleportSuspected(1.2, 0.1), false)
+	-- even a fast fall (about 100 studs/s) over 0.1 s stays below the limit
+	t.eq(StealRules.teleportSuspected(10, 0.1), false)
+	-- a teleport of 80 studs within one check is refused
+	t.eq(StealRules.teleportSuspected(80, 0.1), true)
+	-- the same distance over a long time is fine
+	t.eq(StealRules.teleportSuspected(80, 10), false)
+end)
+
+t.test("teleportSuspected is safe for broken input", function()
+	local StealRules = load("StealRules")
+	t.eq(StealRules.teleportSuspected(0 / 0, 0.1), true)
+	t.eq(StealRules.teleportSuspected(5, 0 / 0), true)
+	t.eq(StealRules.teleportSuspected(5, -1), true)
+	t.eq(StealRules.teleportSuspected(math.huge, 1), true)
+end)
+
+t.test("retryDelay grows with every failed start and is capped", function()
+	local StealRules = load("StealRules")
+	local Config = load("Config")
+	t.eq(StealRules.retryDelay(0), 0)
+	t.eq(StealRules.retryDelay(1), Config.STEAL_RETRY_DELAY)
+	t.eq(StealRules.retryDelay(3), Config.STEAL_RETRY_DELAY * 3)
+	t.eq(StealRules.retryDelay(50), Config.STEAL_RETRY_DELAY * Config.STEAL_RETRY_MAX_STEPS)
+	t.eq(StealRules.retryDelay(-2), 0)
+	t.eq(StealRules.retryDelay(0 / 0), 0)
+end)
+
 t.test("thief leaves while carrying -> return_to_owner", function()
 	local StealRules = load("StealRules")
 	t.eq(StealRules.resolveLeave("thief", true), "return_to_owner")

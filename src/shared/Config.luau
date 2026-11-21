@@ -19,6 +19,11 @@ return {
 	STEAL_LOCK_TIMEOUT = 4, -- seconds until an unfinished steal frees the treasure again
 	OWNER_TOUCH_RADIUS = 5, -- studs: owner this close to the thief makes the loot fall
 	OWNER_TOUCH_CHECK = 0.1, -- seconds between owner-touch checks
+	TELEPORT_SLACK = 10, -- studs a carrier may jump between two checks on top of MAX_MOVE_SPEED (falls, lag)
+	STEAL_RETRY_DELAY = 1, -- seconds a thief must wait after a failed steal start, times the number of failures in a row
+	STEAL_RETRY_MAX_STEPS = 5, -- the wait grows at most this many steps
+	STEAL_FAIL_MEMORY = 30, -- seconds without a failed start until the failure count starts again
+	ALARM_INTERVAL = 4, -- seconds between two steal alarms for the same owner
 
 	-- Fallen
 	BANANA_COST = 50,

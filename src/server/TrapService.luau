@@ -198,6 +198,21 @@ function TrapService.handlePlace(player: Player): (boolean, string?)
 	return true, nil
 end
 
+-- Peels a player bought but did not place are not saved. When he leaves, he gets the bottle caps back,
+-- so nothing he paid for is lost. Call BEFORE the final save (see Main). Returns the refunded caps.
+function TrapService.refundStock(player: Player): number
+	local count = stock[player] or 0
+	if count <= 0 then
+		return 0
+	end
+	local amount = count * Config.BANANA_COST
+	stock[player] = 0
+	if TreasureService.addCaps(player, amount) then
+		return amount
+	end
+	return 0
+end
+
 local function onPlayerAdded(player: Player)
 	placed[player] = {}
 	setStock(player, 0)

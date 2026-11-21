@@ -10,6 +10,12 @@ t.test("remote names are unique", function()
 	end
 end)
 
+t.test("remotes nobody listens to are not offered (pickup and place use prompts)", function()
+	local Remotes = load("Remotes")
+	t.eq(table.find(Remotes.names, "RequestPickup"), nil)
+	t.eq(table.find(Remotes.names, "RequestPlace"), nil)
+end)
+
 t.test("all remotes from the plan exist", function()
 	local Remotes = load("Remotes")
 	local have = {}
@@ -19,8 +25,6 @@ t.test("all remotes from the plan exist", function()
 	for _, name in {
 		"HudUpdate",
 		"Announce",
-		"RequestPickup",
-		"RequestPlace",
 		"RequestStealStart",
 		"RequestStealCommit",
 		"RequestBuyBanana",

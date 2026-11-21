@@ -5,8 +5,7 @@ local Remotes = {}
 Remotes.names = {
 	"HudUpdate", -- server -> client: caps, income
 	"Announce", -- server -> all clients: banner text, rarity
-	"RequestPickup",
-	"RequestPlace",
+	-- Pickup and place are NOT remotes: they run through ProximityPrompts on the server.
 	"RequestStealStart",
 	"RequestStealCommit",
 	"RequestBuyBanana",

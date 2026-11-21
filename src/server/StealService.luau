@@ -26,6 +26,11 @@ local lastStealAt: { [Player]: number } = {}
 -- When a player's steal request was last rejected (a Commit that follows right after is expected, no second hint).
 local lastRejectAt: { [Player]: number } = {}
 local REJECT_QUIET_SECONDS = 6
+-- Failed starts in a row per thief and the time until he may start again (anti lock abuse).
+local failStreak: { [Player]: { count: number, at: number } } = {}
+local blockedUntil: { [Player]: number } = {}
+-- When an owner got his last steal alarm (UserId -> time), so nobody can spam his screen.
+local lastAlarmAt: { [number]: number } = {}
 local dropTokens: { [Model]: number } = {}
 local nextToken = 0
 
@@ -78,7 +83,13 @@ local function clearHold(player: Player)
 end
 
 local function reject(player: Player, reason: string, treasureId: string?)
-	lastRejectAt[player] = os.clock()
+	local now = os.clock()
+	lastRejectAt[player] = now
+	-- Every failed steal makes the next start wait a little longer (1 s, 2 s, ... up to 5 s).
+	local streak = failStreak[player]
+	local count = if streak and now - streak.at <= Config.STEAL_FAIL_MEMORY then streak.count + 1 else 1
+	failStreak[player] = { count = count, at = now }
+	blockedUntil[player] = now + StealRules.retryDelay(count)
 	clearHold(player)
 	warn(`[StealService] {player.Name} rejected: {reason} ({treasureId or "?"})`)
 	hint(player, reason)
@@ -132,6 +143,11 @@ local function onStealStart(player: Player, treasureId: any)
 		warn(`[StealService] {player.Name} sent a bad StealStart argument`)
 		return
 	end
+	-- After a failed steal the thief has to wait (a griefer cannot keep a treasure locked by spamming starts).
+	if os.clock() < (blockedUntil[player] or 0) then
+		hint(player, "cooldown")
+		return
+	end
 	-- A new start always ends the old hold first.
 	clearHold(player)
 	-- Nobody steals while sliding on a banana peel.
@@ -169,8 +185,12 @@ local function onStealStart(player: Player, treasureId: any)
 		startPos = root.Position,
 		token = token,
 	}
-	-- Warning signal for the victim while the hold is running.
-	Announcer.stealAlarm(ownerId, player.Name)
+	-- Warning signal for the victim while the hold is running (at most one per ALARM_INTERVAL).
+	local alarmNow = os.clock()
+	if alarmNow - (lastAlarmAt[ownerId] or -1000) >= Config.ALARM_INTERVAL then
+		lastAlarmAt[ownerId] = alarmNow
+		Announcer.stealAlarm(ownerId, player.Name)
+	end
 
 	-- The thief never commits: free the treasure again.
 	task.delay(Config.STEAL_LOCK_TIMEOUT, function()
@@ -234,6 +254,8 @@ local function onStealCommit(player: Player, treasureId: any)
 		return
 	end
 	lastStealAt[player] = now
+	failStreak[player] = nil
+	blockedUntil[player] = nil
 	print(`[StealService] {player.Name} stole {treasure.Name} from user {ownerId}`)
 	local def = Catalog.get(treasure:GetAttribute("DefId"))
 	if def then
@@ -266,6 +288,12 @@ end
 local function checkOwnerTouches()
 	local toDrop = {}
 	for _, thief in Players:GetPlayers() do
+		-- A thief who teleported with the loot (more than a walking player can) drops it.
+		if TreasureService.carrierJumped(thief) then
+			warn(`[StealService] {thief.Name} jumped while carrying stolen loot, it falls`)
+			table.insert(toDrop, thief)
+			continue
+		end
 		local treasure = TreasureService.carriedBy(thief)
 		local ownerId = treasure and treasure:GetAttribute("OwnerUserId")
 		if typeof(ownerId) == "number" and ownerId ~= 0 and ownerId ~= thief.UserId then
@@ -287,6 +315,9 @@ local function onPlayerRemoving(player: Player)
 	clearHold(player)
 	lastStealAt[player] = nil
 	lastRejectAt[player] = nil
+	failStreak[player] = nil
+	blockedUntil[player] = nil
+	lastAlarmAt[player.UserId] = nil
 	-- Owner leaves: cancel every hold on his treasures (they leave with his base).
 	-- Collect first, then clear, so the table is not changed while looping over it.
 	local cancelled = {}
@@ -312,6 +343,8 @@ StealService.handleStart = onStealStart
 StealService.handleCommit = onStealCommit
 
 function StealService.start()
+	-- A thief who tries to place loot after a teleport loses it (see TreasureService.tryPlace).
+	TreasureService.onCarrierJumped = StealService.dropCarried
 	Remotes.get("RequestStealStart").OnServerEvent:Connect(StealService.handleStart)
 	Remotes.get("RequestStealCommit").OnServerEvent:Connect(StealService.handleCommit)
 

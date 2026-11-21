@@ -40,6 +40,7 @@ end
 -- then free the base, then the final save + unlock. Nothing here yields.
 local function onLeave(player: Player)
 	hasLeft[player] = true
+	TrapService.refundStock(player) -- unplaced banana peels come back as bottle caps
 	TreasureService.syncSave(player)
 	TreasureService.removePlayer(player)
 	BaseService.release(player)
