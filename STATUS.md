@@ -39,7 +39,12 @@
   - **Bewusst nicht geändert:** (7) Bananenschalen per Distanz statt `Touched` prüfen (nur vermutet, geringer Schaden, würde das getestete Verhalten ändern).
   - **Hinweis zum Test:** Die Rojo-Verbindung von Studio ließ sich in dieser Sitzung nicht herstellen. Der neue Code wurde deshalb über Studios Befehlsleiste eingespielt (gleicher Inhalt wie die Dateien), danach wurde die `.rbxl` gespeichert. Beim nächsten Rojo-Verbinden ist das unkritisch.
 - **Push erledigt (21.11.2026):** Alle bisherigen Commits sind auf GitHub (Branch `claude/charming-euler-3z2iul`). Die Review-Korrekturen sind lokal committet, aber noch nicht gepusht.
-- **Als Nächstes:** Reviews von Codex bekommen und prüfen, `docs/veroeffentlichen.md` ins Projekt, Veröffentlichen (privat, API-Zugriff, echtes Speichern testen), Icon/Thumbnail, Altersfreigabe (Task 12 Schritte 2 und 3), Playtest in Woche 2.
+- **Codex-Reviews angekommen (21.11.2026):** Server- und Client-Review sowie die Veröffentlichungs-Anleitung liegen im Projekt (`docs/codex-review-ergebnis.md` mit Einschätzung von Claude, `docs/veroeffentlichen.md`). Offene Funde, die noch umzusetzen sind (kleine Korrekturen, jeweils mit Test und Studio-Check):
+  - Server: (a) während eines laufenden Klau-Holds die Entfernung prüfen und abbrechen, wenn der Dieb den Radius verlässt (nur Codex), (b) Ausrutsch-Timer nur auf denselben Charakter wirken lassen (nur Codex), (c) Spieler ohne freien Bau: klare Meldung, Kick und saubere Profilfreigabe (nur Codex), (d) Bananenschale vor dem Verbrauch auf Nähe des Opfers prüfen (beide Reviews).
+  - Client (Codex-Dateien in `src/client`): Footer gegen STEAL-Button im kleinen Querformat prüfen (568 mal 320), Banner-Warteschlange begrenzen, Buttons gegen Touch-Flächen im Emulator prüfen.
+  - Bewusst offen: Schatz-Transfer ist über zwei Spielstände nicht atomar (Absturz genau dazwischen), erst nach der Veröffentlichung bewerten.
+- **Übergabe an neue Sitzung (21.11.2026):** Die Sitzung wurde neu gestartet, damit nichts durcheinandergerät. Studio läuft mit der `.rbxl`, die Rojo-Verbindung klappte zuletzt nicht (neuen Code dann über die Studio-Befehlsleiste einspielen, siehe oben). Pushes gehen jetzt ohne Rückfrage (Anmeldung hinterlegt).
+- **Als Nächstes (alt):** Reviews von Codex bekommen und prüfen, `docs/veroeffentlichen.md` ins Projekt, Veröffentlichen (privat, API-Zugriff, echtes Speichern testen), Icon/Thumbnail, Altersfreigabe (Task 12 Schritte 2 und 3), Playtest in Woche 2.
 - **Blockiert:** Alles mit Roblox Studio braucht deinen Laptop.
 
 - **Creator-Name (entschieden):** `SamyDev` (überall gleich: Roblox, YouTube, TikTok, Instagram). Verfügbarkeit noch prüfen; wenn belegt, überall dieselbe Variante.
