@@ -8,6 +8,8 @@ local Config = require(Shared.Config)
 local Theme = require(Shared.Theme)
 
 local Hud = {}
+local MAX_PENDING_ANNOUNCEMENTS = 4
+local MAX_FOOTER_WIDTH = 480
 local hasThemeFont, themeFont = pcall(function()
 	return Enum.Font[Theme.font]
 end)
@@ -122,11 +124,17 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 	stack(counter, 0)
 	label(counter, "Caption", 1, "BOTTLE CAPS", Theme.textSize.hint, COLORS.text)
 	local capsLabel = label(counter, "Amount", 2, "—", Theme.textSize.hud + 8, COLORS.accent)
+	local capsScale = Instance.new("UIScale")
+	capsScale.Parent = capsLabel
 	local incomeLabel = label(counter, "Income", 3, "+—/s", Theme.textSize.hint, COLORS.good)
 
 	local banner = frame(header, "Announcement", 2, COLORS.panel)
 	banner.Visible = false
 	roundCorners(banner)
+	local bannerStroke = Instance.new("UIStroke")
+	bannerStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+	bannerStroke.Transparency = 1
+	bannerStroke.Parent = banner
 	pad(banner, 10, 4)
 	local bannerText = label(banner, "Message", 1, "", Theme.textSize.banner, COLORS.text)
 
@@ -144,7 +152,7 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 	local footer = frame(viewport, "Footer", 3)
 	footer.AnchorPoint = Vector2.new(0.5, 1)
 	footer.ZIndex = 2
-	limitSize(footer, 480)
+	limitSize(footer, MAX_FOOTER_WIDTH)
 	stack(footer, 5)
 
 	local hint = frame(footer, "Introduction", 1, COLORS.background)
@@ -211,17 +219,31 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 		actions.AnchorPoint = Vector2.new(if touch then 0 else 1, 0)
 		actions.Position = UDim2.fromScale(if touch then 0.02 else 0.98, if shortWide then 0.03 elseif portrait then 0.30 else 0.2)
 		actions.Size = UDim2.fromScale(if shortWide then 0.27 elseif portrait then 0.46 else 0.32, 0)
-		footer.Position = UDim2.fromScale(0.5, 0.97)
-		footer.Size = UDim2.fromScale(if shortWide then 0.34 else 0.62, 0)
 		stealButton.Position = if shortWide then UDim2.fromScale(0.8, 0.95) else UDim2.fromScale(0.98, 0.77)
+		if shortWide and touch and view.X > 0 and stealButton.AbsoluteSize.X > 0 then
+			-- Trim only the right side so the footer does not move toward the thumbstick.
+			local width = math.min(view.X * 0.34, MAX_FOOTER_WIDTH)
+			local left = (view.X - width) / 2
+			local buttonLeft = view.X * stealButton.Position.X.Scale - stealButton.AbsoluteSize.X
+			local safeWidth = math.clamp(buttonLeft - 8 - left, 0, width)
+			footer.Position = UDim2.fromScale((left + safeWidth / 2) / view.X, 0.97)
+			footer.Size = UDim2.fromScale(safeWidth / view.X, 0)
+		else
+			footer.Position = UDim2.fromScale(0.5, 0.97)
+			footer.Size = UDim2.fromScale(if shortWide then 0.34 else 0.62, 0)
+		end
 	end
 
 	local displayedCaps = Instance.new("NumberValue")
 	displayedCaps.Parent = counter
 	local capsTween: Tween?
+	local capsPop = TweenService:Create(capsScale, TweenInfo.new(0.22, Enum.EasingStyle.Quad), { Scale = 1 })
+	local capsSpend = TweenService:Create(capsLabel, TweenInfo.new(0.3), { TextColor3 = COLORS.accent })
 	local progressTween = TweenService:Create(fill, TweenInfo.new(Config.STEAL_HOLD, Enum.EasingStyle.Linear), {
 		Size = UDim2.fromScale(1, 1),
 	})
+	local rewindTween: Tween?
+	local keyboardHintRequested = false
 	local previousCaps: number?
 	local pending: { Announcement } = {}
 	local active: Announcement?
@@ -233,10 +255,12 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 		"Hold E at another base to steal",
 		"Buy banana peels to stop thieves",
 	}
+	local tipFade = TweenService:Create(hintText, TweenInfo.new(0.18), { TextTransparency = 0 })
 
 	local function updateBananas()
 		local count = player:GetAttribute("Bananas")
 		stock.Text = if typeof(count) == "number" then string.format("Bananas: %d", count) else "Bananas: —"
+		place.BackgroundColor3 = if count == 0 then COLORS.background else COLORS.panel
 	end
 
 	local function updateBase()
@@ -245,27 +269,48 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 	end
 
 	local function updateTip()
-		hintText.Text = if hintIndex == 2 and UserInputService.PreferredInput == Enum.PreferredInput.Touch
+		local message = if hintIndex == 2 and UserInputService.PreferredInput == Enum.PreferredInput.Touch
 			then "Hold STEAL at another base to steal"
 			else hintMessages[hintIndex]
+		if hint.Visible and hintText.Text ~= message then
+			hintText.Text = message
+			tipFade:Cancel()
+			hintText.TextTransparency = 1
+			tipFade:Play()
+		end
 	end
 
 	local function hideTips()
 		hint.Visible = false
+		tipFade:Cancel()
 		if hintTask then
 			task.cancel(hintTask)
 			hintTask = nil
 		end
 	end
 
+	local buttonTweens: { Tween } = {}
+	local function connectButtonPress(guiButton: TextButton, action: () -> ()): RBXScriptConnection
+		-- Only animate the background so the text and touch target stay full size.
+		local release = TweenService:Create(guiButton, TweenInfo.new(0.14), { BackgroundTransparency = 0 })
+		table.insert(buttonTweens, release)
+		return guiButton.Activated:Connect(function()
+			release:Cancel()
+			guiButton.BackgroundTransparency = 0.2
+			release:Play()
+			action()
+		end)
+	end
+
 	local connections = {
 		viewport:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout),
+		stealButton:GetPropertyChangedSignal("AbsoluteSize"):Connect(layout),
 		player:GetAttributeChangedSignal("Bananas"):Connect(updateBananas),
 		player:GetAttributeChangedSignal("BaseLevel"):Connect(updateBase),
 		UserInputService:GetPropertyChangedSignal("PreferredInput"):Connect(updateTip),
-		buy.Activated:Connect(buyBanana),
-		place.Activated:Connect(placeBanana),
-		upgrade.Activated:Connect(upgradeBase),
+		connectButtonPress(buy, buyBanana),
+		connectButtonPress(place, placeBanana),
+		connectButtonPress(upgrade, upgradeBase),
 		skip.Activated:Connect(hideTips),
 		displayedCaps.Changed:Connect(function(value)
 			capsLabel.Text = tostring(math.round(value))
@@ -283,34 +328,87 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 			capsTween:Cancel()
 			capsTween = nil
 		end
+		-- Dim unavailable actions using the latest server balance; taps still send requests.
+		buy.BackgroundColor3 = if caps < Config.BANANA_COST then COLORS.background else COLORS.panel
+		upgrade.BackgroundColor3 = if caps < Config.UPGRADE_COST then COLORS.background else COLORS.panel
+		capsPop:Cancel()
+		capsSpend:Cancel()
+		capsScale.Scale = 1
+		capsLabel.TextColor3 = COLORS.accent
 		if previousCaps and caps > previousCaps then
 			local tween = TweenService:Create(displayedCaps, TweenInfo.new(0.35, Enum.EasingStyle.Quad), { Value = caps })
 			capsTween = tween
 			tween:Play()
+			capsScale.Scale = 1.08
+			capsPop:Play()
 		else
 			displayedCaps.Value = caps
 			capsLabel.Text = tostring(caps)
+			if previousCaps then
+				capsLabel.TextColor3 = COLORS.danger
+				capsSpend:Play()
+			end
 		end
 		previousCaps = caps
 	end
 
 	function hud.setStealProgress(visible: boolean)
+		if rewindTween then
+			rewindTween:Destroy()
+			rewindTween = nil
+		end
+		local completed = progressTween.PlaybackState == Enum.PlaybackState.Completed
 		progressTween:Cancel()
-		progress.Visible = visible
-		fill.Size = UDim2.fromScale(0, 1)
 		if visible then
+			progress.Visible = true
+			keyboardHint.Visible = false
+			fill.Size = UDim2.fromScale(0, 1)
 			progressTween:Play()
+		elseif completed or not progress.Visible or fill.Size.X.Scale <= 0 then
+			progress.Visible = false
+			fill.Size = UDim2.fromScale(0, 1)
+			keyboardHint.Visible = keyboardHintRequested
+		else
+			-- A fresh hold cancels this visual reset and starts with an empty bar.
+			local tween = TweenService:Create(fill, TweenInfo.new(0.12, Enum.EasingStyle.Quad), {
+				Size = UDim2.fromScale(0, 1),
+			})
+			rewindTween = tween
+			tween.Completed:Once(function(state)
+				if rewindTween == tween and state == Enum.PlaybackState.Completed then
+					rewindTween = nil
+					progress.Visible = false
+					keyboardHint.Visible = keyboardHintRequested
+					tween:Destroy()
+				end
+			end)
+			tween:Play()
 		end
 	end
 
 	function hud.setKeyboardHint(visible: boolean)
-		keyboardHint.Visible = visible
+		keyboardHintRequested = visible
+		keyboardHint.Visible = visible and not progress.Visible
 	end
 
 	function hud.announce(message: string, rarity: string)
 		local last = pending[#pending] or active
 		if rarity == "common" and last and last.rarity == rarity and last.text == message then
 			return
+		end
+		if #pending >= MAX_PENDING_ANNOUNCEMENTS then
+			local oldestCommon: number?
+			for index, item in pending do
+				if item.rarity == "common" then
+					oldestCommon = index
+					break
+				end
+			end
+			-- A common notice cannot displace an announcement for all players.
+			if not oldestCommon and rarity == "common" then
+				return
+			end
+			table.remove(pending, oldestCommon or 1)
 		end
 		table.insert(pending, { text = message, rarity = rarity })
 		if bannerTask then
@@ -323,19 +421,29 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 				local item = table.remove(pending, 1)
 				active = item
 				local special = item.rarity == "rare" or item.rarity == "legendary"
-				banner.BackgroundColor3 = if special then COLORS[item.rarity] else COLORS.panel
-				bannerText.TextColor3 = if special then COLORS.background else COLORS.text
+				banner.BackgroundColor3 = if special then COLORS.background else COLORS.panel
+				if special then
+					bannerStroke.Color = COLORS[item.rarity]
+					bannerStroke.Thickness = Theme.strokeThickness * (if item.rarity == "legendary" then 2 else 1)
+				end
 				bannerText.Text = item.text
 				banner.BackgroundTransparency = 1
 				bannerText.TextTransparency = 1
+				bannerStroke.Transparency = 1
 				banner.Visible = true
 
 				local fade = TweenInfo.new(0.15)
 				TweenService:Create(banner, fade, { BackgroundTransparency = 0 }):Play()
 				TweenService:Create(bannerText, fade, { TextTransparency = 0 }):Play()
+				if special then
+					TweenService:Create(bannerStroke, fade, { Transparency = 0 }):Play()
+				end
 				task.wait(if special then 2.85 else 1.85)
 				TweenService:Create(banner, fade, { BackgroundTransparency = 1 }):Play()
 				TweenService:Create(bannerText, fade, { TextTransparency = 1 }):Play()
+				if special then
+					TweenService:Create(bannerStroke, fade, { Transparency = 1 }):Play()
+				end
 				task.wait(fade.Time)
 			end
 			active = nil
@@ -346,7 +454,16 @@ function Hud.new(player: Player, playerGui: PlayerGui, buyBanana: () -> (), plac
 
 	function hud.destroy()
 		hideTips()
+		tipFade:Destroy()
+		if rewindTween then
+			rewindTween:Destroy()
+		end
 		progressTween:Destroy()
+		capsPop:Destroy()
+		capsSpend:Destroy()
+		for _, tween in buttonTweens do
+			tween:Destroy()
+		end
 		if bannerTask then
 			task.cancel(bannerTask)
 		end
