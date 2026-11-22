@@ -49,10 +49,10 @@ if ground and ground:IsA("BasePart") then
 			child:Destroy()
 		end
 	end
-	ground.Material = Enum.Material.Asphalt
-	ground.Color = Color3.fromRGB(62, 65, 72)
+	ground.Material = Enum.Material.Ground
+	ground.Color = Color3.fromRGB(96, 84, 70)
 else
-	part("Ground", Vector3.new(600, 1, 600), CFrame.new(0, -0.5, 0), Color3.fromRGB(62, 65, 72), Enum.Material.Asphalt)
+	part("Ground", Vector3.new(600, 1, 600), CFrame.new(0, -0.5, 0), Color3.fromRGB(96, 84, 70), Enum.Material.Ground)
 end
 
 for i = 1, 6 do
@@ -130,7 +130,7 @@ for k = 0, FENCE_COUNT - 1 do
 		"Fence",
 		Vector3.new(23, height, 2),
 		CFrame.lookAt(polar(125, deg, height / 2), Vector3.new(0, height / 2, 0)),
-		if rust then Color3.fromRGB(shade + 20, shade - 20, shade - 45) else Color3.fromRGB(shade, shade, shade + 6),
+		if rust then Color3.fromRGB(shade - 5, shade - 35, shade - 55) else Color3.fromRGB(shade, shade, shade + 6),
 		Enum.Material.CorrodedMetal
 	)
 end
@@ -165,8 +165,8 @@ signText.Parent = sign
 
 Lighting.ClockTime = 17.2
 Lighting.Brightness = 2.4
-Lighting.Ambient = Color3.fromRGB(95, 95, 115)
-Lighting.OutdoorAmbient = Color3.fromRGB(110, 105, 125)
+Lighting.Ambient = Color3.fromRGB(115, 105, 98)
+Lighting.OutdoorAmbient = Color3.fromRGB(125, 112, 100)
 Lighting.ColorShift_Top = Color3.fromRGB(255, 205, 160)
 for _, className in { "Atmosphere", "BloomEffect", "ColorCorrectionEffect" } do
 	local existing = Lighting:FindFirstChildOfClass(className)
