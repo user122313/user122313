@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="75%">
+      <stop offset="0" stop-color="#ffb347"/><stop offset="0.6" stop-color="#ff8a00"/><stop offset="1" stop-color="#b84a00"/>
+    </radialGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff2a8"/><stop offset="1" stop-color="#f0a800"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" fill="url(#bg)"/>
+  <!-- rays -->
+  <g opacity="0.18" fill="#fff">
+    <polygon points="256,256 0,60 0,150"/><polygon points="256,256 512,60 512,150"/>
+    <polygon points="256,256 120,0 220,0"/><polygon points="256,256 300,0 400,0"/>
+  </g>
+  <!-- ears -->
+  <circle cx="150" cy="140" r="50" fill="#4a4f57" stroke="#1c1f24" stroke-width="10"/>
+  <circle cx="362" cy="140" r="50" fill="#4a4f57" stroke="#1c1f24" stroke-width="10"/>
+  <circle cx="150" cy="144" r="24" fill="#d9a8a0"/><circle cx="362" cy="144" r="24" fill="#d9a8a0"/>
+  <!-- head -->
+  <ellipse cx="256" cy="250" rx="160" ry="135" fill="#9aa1aa" stroke="#1c1f24" stroke-width="12"/>
+  <!-- white cheeks -->
+  <ellipse cx="170" cy="310" rx="62" ry="48" fill="#f2f2f2"/>
+  <ellipse cx="342" cy="310" rx="62" ry="48" fill="#f2f2f2"/>
+  <!-- bandit mask -->
+  <path d="M110 215 Q256 165 402 215 Q410 275 350 285 Q300 255 256 262 Q212 255 162 285 Q102 275 110 215Z" fill="#23262c"/>
+  <!-- eyes -->
+  <ellipse cx="190" cy="232" rx="34" ry="30" fill="#fff"/><ellipse cx="322" cy="232" rx="34" ry="30" fill="#fff"/>
+  <circle cx="200" cy="234" r="15" fill="#111"/><circle cx="312" cy="234" r="15" fill="#111"/>
+  <circle cx="205" cy="228" r="5" fill="#fff"/><circle cx="317" cy="228" r="5" fill="#fff"/>
+  <!-- sly brows -->
+  <path d="M150 196 L226 214" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+  <path d="M362 196 L286 214" stroke="#111" stroke-width="10" stroke-linecap="round"/>
+  <!-- nose + grin -->
+  <ellipse cx="256" cy="298" rx="22" ry="16" fill="#1c1f24"/>
+  <path d="M206 330 Q256 372 306 330" fill="#fff" stroke="#1c1f24" stroke-width="8" stroke-linejoin="round"/>
+  <!-- bottle cap -->
+  <g transform="translate(398 410)">
+    <circle r="78" fill="#7a4a00"/>
+    <circle r="70" fill="url(#gold)" stroke="#7a4a00" stroke-width="6"/>
+    <circle r="46" fill="none" stroke="#c98a00" stroke-width="8"/>
+    <text y="14" text-anchor="middle" font-family="Arial Black, Arial" font-weight="900" font-size="38" fill="#9a5f00">TB</text>
+  </g>
+  <!-- sparkles -->
+  <g fill="#fff"><polygon points="70,380 78,402 100,410 78,418 70,440 62,418 40,410 62,402"/>
+  <polygon points="440,90 445,105 460,110 445,115 440,130 435,115 420,110 435,105"/></g>
+</svg>

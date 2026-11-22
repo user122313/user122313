@@ -33,3 +33,8 @@ Kein Geld nötig, alles mit Kronkorken kaufbar. Ausbaustufe des Baus gibt es sch
 - Rebirth (siehe 3), erst wenn Spieler wiederkommen
 
 Achtung: Jede dieser Ideen braucht UI (Codex), Server (Claude), Balance und Tests. Das ist Feature-Sammlung (Anti-Ziel in Spec Abschnitt 2), solange der Kernloop nicht im Playtest bewiesen ist.
+
+## Shop-Tab und echte Käufe (Idee vom 22.11.2026)
+- Shop-Tab im HUD mit 2 bis 3 Angeboten: Extra-Plätze (Game Pass), Kronkorken-Paket (Developer Product). Keine Zufalls-Käufe.
+- Vorher: Altersfreigabe-Fragebogen neu ausfüllen, Regeln für minderjährige Creator klären. Recherche: `docs/recherche-map-und-shop.md`.
+- Erst nach dem Playtest, nicht vor Woche 4.
