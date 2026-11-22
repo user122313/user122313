@@ -22,6 +22,7 @@ local Remotes = require(Shared.Remotes)
 local SaveSchema = require(Shared.SaveSchema)
 local StealRules = require(Shared.StealRules)
 local Theme = require(Shared.Theme)
+local TreasureLook = require(Shared.TreasureLook)
 local BaseService = require(script.Parent.BaseService)
 local DataService = require(script.Parent.DataService)
 
@@ -231,22 +232,79 @@ local function createTreasure(defId: string): Model?
 
 	local model = Instance.new("Model")
 	model.Name = def.id
+	-- Body is the invisible 3x3x3 handle: placing, carrying, the grab prompt and all distance checks use it.
+	-- The visible shape (TreasureLook) is welded to it, so it moves with the body when carried.
 	local body = Instance.new("Part")
 	body.Name = "Body"
 	body.Size = Vector3.new(3, 3, 3)
 	body.Color = color
-	body.Material = if def.rarity == "common" then Enum.Material.SmoothPlastic else Enum.Material.Neon
+	body.Transparency = 1
 	body.TopSurface = Enum.SurfaceType.Smooth
 	body.BottomSurface = Enum.SurfaceType.Smooth
 	body.Anchored = true
 	body.CanCollide = false
+	body.CanQuery = false
 	body.Parent = model
 	model.PrimaryPart = body
 
+	local function addVisual(shape: string, size: Vector3, offset: Vector3, partColor: Color3, material: Enum.Material)
+		local visual = Instance.new("Part")
+		visual.Name = "Look"
+		if shape == "ball" then
+			visual.Shape = Enum.PartType.Ball
+			visual.Size = size
+		elseif shape == "can" then
+			-- Cylinders lie along X; turn it upright. Size is given as world (diameter, height, diameter).
+			visual.Shape = Enum.PartType.Cylinder
+			visual.Size = Vector3.new(size.Y, size.X, size.Z)
+		else
+			visual.Size = size
+		end
+		visual.Color = partColor
+		visual.Material = material
+		visual.TopSurface = Enum.SurfaceType.Smooth
+		visual.BottomSurface = Enum.SurfaceType.Smooth
+		visual.Anchored = true
+		visual.CanCollide = false
+		visual.CanQuery = false
+		visual.CFrame = body.CFrame * CFrame.new(offset) * (if shape == "can" then CFrame.Angles(0, 0, math.rad(90)) else CFrame.identity)
+		visual.Parent = model
+		local weld = Instance.new("WeldConstraint")
+		weld.Part0 = body
+		weld.Part1 = visual
+		weld.Parent = visual
+	end
+
+	for _, look in TreasureLook.get(def.id) or {} do
+		local materialOk, material = pcall(function()
+			return Enum.Material[look.material]
+		end)
+		addVisual(
+			look.kind,
+			Vector3.new(look.size[1], look.size[2], look.size[3]),
+			Vector3.new(look.offset[1], look.offset[2], look.offset[3]),
+			Color3.fromRGB(look.color[1], look.color[2], look.color[3]),
+			if materialOk then material else Enum.Material.SmoothPlastic
+		)
+	end
+	-- Rare and legendary treasures stand on a glowing plate in their rarity color, so they stand out from afar.
+	if def.rarity ~= "common" then
+		addVisual("can", Vector3.new(3.6, 0.15, 3.6), Vector3.new(0, -1.5, 0), color, Enum.Material.Neon)
+	end
+	if def.rarity == "legendary" then
+		local light = Instance.new("PointLight")
+		light.Color = color
+		light.Brightness = 2
+		light.Range = 14
+		light.Parent = body
+	end
+
+	-- Name tag: small, only visible from nearby and not through walls, so crowded places stay readable.
 	local billboard = Instance.new("BillboardGui")
-	billboard.Size = UDim2.fromOffset(220, 44)
-	billboard.StudsOffset = Vector3.new(0, 3.2, 0)
-	billboard.AlwaysOnTop = true
+	billboard.Size = UDim2.fromOffset(140, 28)
+	billboard.StudsOffset = Vector3.new(0, 2.6, 0)
+	billboard.AlwaysOnTop = false
+	billboard.MaxDistance = 26
 	billboard.Parent = body
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
