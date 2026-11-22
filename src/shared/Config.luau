@@ -30,6 +30,10 @@ return {
 	-- Fallen
 	BANANA_COST = 50,
 	MAX_BANANAS = 3,
+	DEPOSIT_RETRY = 4, -- seconds between two auto-deposit tries (a full base would otherwise spam the hint)
+	SHIELD_SECONDS = 10, -- how long the base shield lasts after stepping on the pad
+	SHIELD_COOLDOWN = 45, -- seconds after the shield ended until the pad works again (tuning knob, see playtest)
+	SHIELD_PAD_RADIUS = 3.5, -- studs (flat) around the pad center that count as standing on it
 	BANANA_TRIGGER_RADIUS = 7, -- studs from the peel center to the victim root (feet touch + lag); farther touches are ignored
 	SLIP_SECONDS = 2,
 

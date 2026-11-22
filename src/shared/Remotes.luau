@@ -13,6 +13,7 @@ Remotes.names = {
 	"RequestUpgradeBase",
 	"Slipped", -- server -> client: slip duration
 	"StealAlarm", -- server -> owner: thiefName (someone started stealing from you)
+	"Fx", -- server -> all clients: kind ("pickup", "steal", "place", "shield_on", "shield_off"), position, rarity ("common", "rare", "legendary" or ""). Presentation only (animation, particles, sound).
 }
 
 local FOLDER_NAME = "Remotes"

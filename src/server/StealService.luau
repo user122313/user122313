@@ -15,6 +15,7 @@ local Remotes = require(Shared.Remotes)
 local StealRules = require(Shared.StealRules)
 local Announcer = require(script.Parent.Announcer)
 local BaseService = require(script.Parent.BaseService)
+local ShieldService = require(script.Parent.ShieldService)
 local TreasureService = require(script.Parent.TreasureService)
 
 local StealService = {}
@@ -49,6 +50,7 @@ local HINTS = {
 	no_start = "Hold the button to steal!",
 	slipping = "You're slipping!",
 	timeout = "Too slow, the steal was cancelled!",
+	shielded = "That base is shielded!",
 }
 
 local function hint(player: Player, reason: string)
@@ -112,6 +114,11 @@ local function stealable(player: Player, treasureId: string): (Model?, number?, 
 	end
 	if ownerId == player.UserId then
 		return nil, nil, "own_treasure"
+	end
+	-- A shielded base cannot be robbed.
+	local ownerPlayer = Players:GetPlayerByUserId(ownerId)
+	if ownerPlayer and ShieldService.isShielded(ownerPlayer) then
+		return nil, nil, "shielded"
 	end
 	-- isHome checks: owner still on the server, has his base, treasure sits in that slot, not carried.
 	if not TreasureService.isHome(treasure) then
@@ -313,17 +320,22 @@ end
 -- While a hold runs the thief must stay near the treasure, otherwise he could step away and
 -- come back right before the commit (start and end positions alone would look fine).
 local function checkHolds()
-	local broken = {}
+	local broken: { [Player]: string } = {}
 	for thief, hold in holds do
 		local root, body = rootOf(thief), hold.treasure.PrimaryPart
+		local ownerId = hold.treasure:GetAttribute("OwnerUserId")
+		local owner = if typeof(ownerId) == "number" then Players:GetPlayerByUserId(ownerId) else nil
 		if not root or not body or StealRules.holdBroken((root.Position - body.Position).Magnitude) then
-			table.insert(broken, thief)
+			broken[thief] = "too_far"
+		elseif owner and ShieldService.isShielded(owner) then
+			-- The owner switched his shield on while the thief was holding: the steal is cancelled.
+			broken[thief] = "shielded"
 		end
 	end
-	for _, thief in broken do
+	for thief, reason in broken do
 		local hold = holds[thief]
 		if hold then
-			reject(thief, "too_far", hold.treasureId)
+			reject(thief, reason, hold.treasureId)
 		end
 	end
 end

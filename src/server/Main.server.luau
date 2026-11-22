@@ -7,6 +7,7 @@ local BaseService = require(script.Parent.BaseService)
 local TreasureService = require(script.Parent.TreasureService)
 local StealService = require(script.Parent.StealService)
 local TrapService = require(script.Parent.TrapService)
+local ShieldService = require(script.Parent.ShieldService)
 
 Remotes.create()
 DataService.start()
@@ -15,6 +16,7 @@ DataService.setBeforeSave(TreasureService.syncSave)
 TreasureService.start()
 StealService.start()
 TrapService.start()
+ShieldService.start()
 
 local MSG_NO_BASE = "This server is full. Please try another server."
 

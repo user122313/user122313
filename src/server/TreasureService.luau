@@ -17,6 +17,7 @@ local Workspace = game:GetService("Workspace")
 local Shared = ReplicatedStorage.Shared
 local Catalog = require(Shared.Catalog)
 local Config = require(Shared.Config)
+local DepositRules = require(Shared.DepositRules)
 local Economy = require(Shared.Economy)
 local Remotes = require(Shared.Remotes)
 local SaveSchema = require(Shared.SaveSchema)
@@ -57,6 +58,12 @@ end
 
 local function hint(player: Player, text: string)
 	Remotes.get("Announce"):FireClient(player, text, "common")
+end
+
+-- Tells every client to play an effect (the client only presents it, see Remotes "Fx").
+local function fx(kind: string, position: Vector3, treasure: Instance?)
+	local def = if treasure then Catalog.get(treasure:GetAttribute("DefId")) else nil
+	Remotes.get("Fx"):FireAllClients(kind, position, if def then def.rarity else "")
 end
 
 local function humanoidOf(player: Player): Humanoid?
@@ -390,8 +397,13 @@ function TreasureService.giveTo(player: Player, treasure: Instance): boolean
 	treasure:SetAttribute("InSlot", false)
 	setPromptEnabled(treasure, false)
 	setSpeed(player, Config.CARRY_SPEED)
-	if isStolenBy(treasure, player) then
+	local stolen = isStolenBy(treasure, player)
+	if stolen then
 		setMarker(player, true)
+	end
+	local pickupBody = treasure.PrimaryPart
+	if pickupBody then
+		fx(if stolen then "steal" else "pickup", pickupBody.Position, treasure)
 	end
 	return true
 end
@@ -492,6 +504,7 @@ function TreasureService.tryPlace(player: Player): (boolean, string?)
 	setSpeed(player, Config.WALK_SPEED)
 	setMarker(player, false)
 	placeInSlot(treasure, player, slot)
+	fx("place", slot.Position, treasure)
 	TreasureService.syncSave(player)
 	local victim = if victimId then Players:GetPlayerByUserId(victimId) else nil
 	if victim then
@@ -747,6 +760,8 @@ local function incomeOf(player: Player): number
 	return Economy.incomePerSecond(ids)
 end
 
+local lastDepositTry: { [Player]: number } = {}
+
 local function sendHud(player: Player)
 	local state = states[player]
 	if state then
@@ -912,31 +927,7 @@ function TreasureService.removePlayer(player: Player)
 		destroyTreasure(treasure :: Model)
 	end
 	states[player] = nil
-end
-
-local function attachPlacePrompts()
-	local bases = Workspace:FindFirstChild("Bases")
-	if not bases then
-		warn("[TreasureService] Workspace.Bases is missing")
-		return
-	end
-	for _, base in bases:GetChildren() do
-		local floor = base:FindFirstChild("Floor")
-		if floor and floor:IsA("BasePart") then
-			local prompt = Instance.new("ProximityPrompt")
-			prompt.Name = "PlacePrompt"
-			prompt.ActionText = "Drop here"
-			prompt.ObjectText = "Your base"
-			prompt.HoldDuration = 0.2
-			prompt.MaxActivationDistance = 22
-			prompt.RequiresLineOfSight = false
-			prompt.KeyboardKeyCode = Enum.KeyCode.F -- E is for stealing
-			prompt.Parent = floor
-			prompt.Triggered:Connect(function(player)
-				TreasureService.tryPlace(player)
-			end)
-		end
-	end
+	lastDepositTry[player] = nil
 end
 
 function TreasureService.start()
@@ -945,11 +936,34 @@ function TreasureService.start()
 	folder.Parent = Workspace
 	treasureFolder = folder
 
-	attachPlacePrompts()
 	Remotes.get("RequestUpgradeBase").OnServerEvent:Connect(function(player)
 		TreasureService.tryUpgrade(player)
 	end)
 	-- Players join/leave through Main (addPlayer / removePlayer), because the save must be loaded first.
+
+	-- Auto deposit: a player who carries a treasure and walks into his own base puts it away, no key needed.
+	task.spawn(function()
+		while true do
+			task.wait(0.1)
+			for player, state in states do
+				if state.carrying then
+					local since = os.clock() - (lastDepositTry[player] or -1000)
+					local info = {
+						carrying = true,
+						insideBase = BaseService.isInsideOwnBase(player),
+						slipping = player:GetAttribute("Slipping") == true,
+						secondsSinceTry = since,
+					}
+					if DepositRules.shouldDeposit(info) then
+						lastDepositTry[player] = os.clock()
+						if TreasureService.tryPlace(player) then
+							lastDepositTry[player] = nil
+						end
+					end
+				end
+			end
+		end
+	end)
 
 	-- Garbage truck
 	task.spawn(function()
